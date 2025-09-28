@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Gastos</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1976d2">
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    h1 { text-align: center; }
+    .resumen { margin: 20px 0; padding: 10px; border: 1px solid #ccc; border-radius: 10px; }
+    .ingreso { color: green; }
+    .gasto { color: red; }
+    .formulario { margin-bottom: 20px; }
+    input, select, button { display: block; width: 100%; margin: 5px 0; padding: 8px; }
+    ul { list-style: none; padding: 0; }
+    li { border-bottom: 1px solid #ddd; padding: 6px 0; }
+  </style>
+</head>
+<body>
+  <h1>Control de Gastos</h1>
+
+  <div class="resumen">
+    <p>Ingresos: <span id="totalIngresos">0</span> €</p>
+    <p>Gastos: <span id="totalGastos">0</span> €</p>
+    <p><b>Saldo: <span id="saldo">0</span> €</b></p>
+  </div>
+
+  <div class="formulario">
+    <label>Fecha:</label>
+    <input type="date" id="fecha">
+
+    <label>Tipo:</label>
+    <select id="tipo">
+      <option value="ingreso">Ingreso</option>
+      <option value="gasto">Gasto</option>
+    </select>
+
+    <label>Categoría:</label>
+    <select id="categoria">
+      <option value="casa">Casa</option>
+      <option value="alimentacion">Alimentación</option>
+      <option value="ocio">Ocio</option>
+      <option value="impuestos">Impuestos</option>
+    </select>
+
+    <label>Importe (€):</label>
+    <input type="number" id="importe" step="0.01">
+
+    <button onclick="agregarMovimiento()">Añadir</button>
+  </div>
+
+  <h2>Movimientos</h2>
+  <ul id="listaMovimientos"></ul>
+
+  <script>
+    let movimientos = JSON.parse(localStorage.getItem("movimientos")) || [];
+
+    function render() {
+      const lista = document.getElementById("listaMovimientos");
+      lista.innerHTML = "";
+
+      let totalIngresos = 0, totalGastos = 0;
+
+      movimientos.forEach((m, index) => {
+        let li = document.createElement("li");
+        li.innerHTML = `${m.fecha} - ${m.tipo} - ${m.categoria} - 
+          <span class="${m.tipo}">${m.tipo === "ingreso" ? "+" : "-"}${m.importe} €</span>`;
+        lista.appendChild(li);
+
+        if (m.tipo === "ingreso") totalIngresos += parseFloat(m.importe);
+        else totalGastos += parseFloat(m.importe);
+      });
+
+      document.getElementById("totalIngresos").textContent = totalIngresos.toFixed(2);
+      document.getElementById("totalGastos").textContent = totalGastos.toFixed(2);
+      document.getElementById("saldo").textContent = (totalIngresos - totalGastos).toFixed(2);
+    }
+
+    function agregarMovimiento() {
+      const fecha = document.getElementById("fecha").value;
+      const tipo = document.getElementById("tipo").value;
+      const categoria = document.getElementById("categoria").value;
+      const importe = document.getElementById("importe").value;
+
+      if (!fecha || !importe) {
+        alert("Completa la fecha y el importe");
+        return;
+      }
+
+      movimientos.push({ fecha, tipo, categoria, importe });
+      localStorage.setItem("movimientos", JSON.stringify(movimientos));
+
+      render();
+
+      document.getElementById("fecha").value = "";
+      document.getElementById("importe").value = "";
+    }
+
+    render();
+
+    // Registrar Service Worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js")
+        .then(() => console.log("Service Worker registrado"))
+        .catch((err) => console.log("Error SW:", err));
+    }
+  </script>
+</body>
+</html>
