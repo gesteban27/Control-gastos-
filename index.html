@@ -9,7 +9,6 @@
   <style>
     body { font-family: sans-serif; margin: 20px; }
     h1 { text-align: center; }
-    .resumen { margin: 20px 0; }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background: #f4f4f4; cursor: pointer; }
@@ -17,6 +16,9 @@
     th.accion-col, td.accion-col { width: 4rem; text-align: center; }
     .delete-btn { background: red; color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
     .hidden { display: none; }
+    .formulario table td { padding: 6px; }
+    .formulario input, .formulario select { width: 95%; padding: 6px; }
+    .formulario button { width: 100%; padding: 8px; background: #1976d2; color: white; border: none; border-radius: 5px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -42,31 +44,40 @@
     </table>
   </div>
 
-  <!-- 🔹 Formulario -->
+  <!-- 🔹 Formulario tabulado -->
   <div class="formulario">
-    <label>Fecha:</label>
-    <input type="date" id="fecha">
-
-    <label>Tipo:</label>
-    <select id="tipo" onchange="toggleCategoria()">
-      <option value="ingreso">Ingreso</option>
-      <option value="gasto">Gasto</option>
-    </select>
-
-    <div id="categoriaContainer">
-      <label>Categoría:</label>
-      <select id="categoria">
-        <option value="casa">Casa</option>
-        <option value="alimentacion">Alimentación</option>
-        <option value="ocio">Ocio</option>
-        <option value="impuestos">Impuestos</option>
-      </select>
-    </div>
-
-    <label>Importe (€):</label>
-    <input type="number" id="importe" step="0.01">
-
-    <button onclick="agregarMovimiento()">Añadir</button>
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Tipo</th>
+          <th>Categoría</th>
+          <th>Importe (€)</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type="date" id="fecha"></td>
+          <td>
+            <select id="tipo" onchange="toggleCategoria()">
+              <option value="ingreso">Ingreso</option>
+              <option value="gasto">Gasto</option>
+            </select>
+          </td>
+          <td id="categoriaCell">
+            <select id="categoria">
+              <option value="casa">Casa</option>
+              <option value="alimentacion">Alimentación</option>
+              <option value="ocio">Ocio</option>
+              <option value="impuestos">Impuestos</option>
+            </select>
+          </td>
+          <td><input type="number" id="importe" step="0.01"></td>
+          <td><button onclick="agregarMovimiento()">Añadir</button></td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
   <!-- 🔹 Movimientos -->
@@ -90,11 +101,11 @@
 
     function toggleCategoria() {
       const tipo = document.getElementById("tipo").value;
-      const categoriaContainer = document.getElementById("categoriaContainer");
+      const categoriaCell = document.getElementById("categoriaCell");
       if (tipo === "ingreso") {
-        categoriaContainer.classList.add("hidden");
+        categoriaCell.classList.add("hidden");
       } else {
-        categoriaContainer.classList.remove("hidden");
+        categoriaCell.classList.remove("hidden");
       }
     }
 
