@@ -9,16 +9,12 @@
   <style>
     body { font-family: sans-serif; margin: 20px; }
     h1 { text-align: center; }
-    .resumen { margin: 20px 0; padding: 10px; border: 1px solid #ccc; border-radius: 10px; }
-    .ingreso { color: green; }
-    .gasto { color: red; }
-    .formulario { margin-bottom: 20px; }
-    input, select, button { display: block; width: 100%; margin: 5px 0; padding: 8px; }
+    .resumen { margin: 20px 0; }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background: #f4f4f4; cursor: pointer; }
-    td.importe-col { text-align: right; }  /* Importe alineado a la derecha */
-    th.accion-col, td.accion-col { width: 4rem; text-align: center; } /* Acción más estrecha */
+    td.importe-col { text-align: right; }
+    th.accion-col, td.accion-col { width: 4rem; text-align: center; }
     .delete-btn { background: red; color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
     .hidden { display: none; }
   </style>
@@ -26,12 +22,27 @@
 <body>
   <h1>Control de Gastos</h1>
 
+  <!-- 🔹 Tabla resumen -->
   <div class="resumen">
-    <p>Ingresos: <span id="totalIngresos">0</span> €</p>
-    <p>Gastos: <span id="totalGastos">0</span> €</p>
-    <p><b>Saldo: <span id="saldo">0</span> €</b></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Ingresos</th>
+          <th>Gastos</th>
+          <th>Saldo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td id="totalIngresos">0 €</td>
+          <td id="totalGastos">0 €</td>
+          <td id="saldo">0 €</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
+  <!-- 🔹 Formulario -->
   <div class="formulario">
     <label>Fecha:</label>
     <input type="date" id="fecha">
@@ -58,6 +69,7 @@
     <button onclick="agregarMovimiento()">Añadir</button>
   </div>
 
+  <!-- 🔹 Movimientos -->
   <h2>Movimientos</h2>
   <table>
     <thead>
@@ -126,12 +138,12 @@
         else totalGastos += parseFloat(m.importe);
       });
 
-      document.getElementById("totalIngresos").textContent = totalIngresos.toFixed(2);
-      document.getElementById("totalGastos").textContent = totalGastos.toFixed(2);
+      document.getElementById("totalIngresos").textContent = totalIngresos.toFixed(2) + " €";
+      document.getElementById("totalGastos").textContent = totalGastos.toFixed(2) + " €";
 
       const saldo = totalIngresos - totalGastos;
       const saldoEl = document.getElementById("saldo");
-      saldoEl.textContent = saldo.toFixed(2);
+      saldoEl.textContent = saldo.toFixed(2) + " €";
 
       // 🎨 Colorear según el valor
       if (saldo > 0) {
