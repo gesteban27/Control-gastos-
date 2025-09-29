@@ -17,6 +17,7 @@
     ul { list-style: none; padding: 0; }
     li { border-bottom: 1px solid #ddd; padding: 6px 0; display: flex; justify-content: space-between; align-items: center; }
     .delete-btn { background: red; color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -33,18 +34,20 @@
     <input type="date" id="fecha">
 
     <label>Tipo:</label>
-    <select id="tipo">
+    <select id="tipo" onchange="toggleCategoria()">
       <option value="ingreso">Ingreso</option>
       <option value="gasto">Gasto</option>
     </select>
 
-    <label>Categoría:</label>
-    <select id="categoria">
-      <option value="casa">Casa</option>
-      <option value="alimentacion">Alimentación</option>
-      <option value="ocio">Ocio</option>
-      <option value="impuestos">Impuestos</option>
-    </select>
+    <div id="categoriaContainer">
+      <label>Categoría:</label>
+      <select id="categoria">
+        <option value="casa">Casa</option>
+        <option value="alimentacion">Alimentación</option>
+        <option value="ocio">Ocio</option>
+        <option value="impuestos">Impuestos</option>
+      </select>
+    </div>
 
     <label>Importe (€):</label>
     <input type="number" id="importe" step="0.01">
@@ -58,6 +61,16 @@
   <script>
     let movimientos = JSON.parse(localStorage.getItem("movimientos")) || [];
 
+    function toggleCategoria() {
+      const tipo = document.getElementById("tipo").value;
+      const categoriaContainer = document.getElementById("categoriaContainer");
+      if (tipo === "ingreso") {
+        categoriaContainer.classList.add("hidden");
+      } else {
+        categoriaContainer.classList.remove("hidden");
+      }
+    }
+
     function render() {
       const lista = document.getElementById("listaMovimientos");
       lista.innerHTML = "";
@@ -67,7 +80,7 @@
       movimientos.forEach((m, index) => {
         let li = document.createElement("li");
         li.innerHTML = `
-          <span>${m.fecha} - ${m.tipo} - ${m.categoria} - 
+          <span>${m.fecha} - ${m.tipo} ${m.categoria ? "- " + m.categoria : ""} - 
             <span class="${m.tipo}">${m.tipo === "ingreso" ? "+" : "-"}${m.importe} €</span>
           </span>
           <button class="delete-btn" onclick="borrarMovimiento(${index})">❌</button>
@@ -86,7 +99,7 @@
     function agregarMovimiento() {
       const fecha = document.getElementById("fecha").value;
       const tipo = document.getElementById("tipo").value;
-      const categoria = document.getElementById("categoria").value;
+      const categoria = tipo === "gasto" ? document.getElementById("categoria").value : "";
       const importe = document.getElementById("importe").value;
 
       if (!fecha || !importe) {
@@ -112,6 +125,7 @@
     }
 
     render();
+    toggleCategoria(); // inicializa visibilidad al cargar
 
     // Registrar Service Worker
     if ("serviceWorker" in navigator) {
