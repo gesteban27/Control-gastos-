@@ -15,7 +15,6 @@
     td.importe-col { text-align: right; }
     th.accion-col, td.accion-col { width: 4rem; text-align: center; }
     .delete-btn { background: red; color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
-    .hidden { display: none; }
     .formulario table td { padding: 6px; }
     .formulario input, .formulario select { width: 95%; padding: 6px; }
     .formulario button { width: 100%; padding: 8px; background: #1976d2; color: white; border: none; border-radius: 5px; cursor: pointer; }
@@ -48,16 +47,16 @@
   <div class="formulario">
     <table>
       <thead>
-        <tr>
+        <tr id="formHeader">
           <th>Fecha</th>
           <th>Tipo</th>
-          <th>Categoría</th>
+          <th id="categoriaHeader">Categoría</th>
           <th>Importe (€)</th>
           <th>Acción</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
+        <tr id="formRow">
           <td><input type="date" id="fecha"></td>
           <td>
             <select id="tipo" onchange="toggleCategoria()">
@@ -102,10 +101,14 @@
     function toggleCategoria() {
       const tipo = document.getElementById("tipo").value;
       const categoriaCell = document.getElementById("categoriaCell");
+      const categoriaHeader = document.getElementById("categoriaHeader");
+
       if (tipo === "ingreso") {
-        categoriaCell.classList.add("hidden");
+        categoriaCell.style.display = "none";
+        categoriaHeader.style.display = "none";
       } else {
-        categoriaCell.classList.remove("hidden");
+        categoriaCell.style.display = "table-cell";
+        categoriaHeader.style.display = "table-cell";
       }
     }
 
@@ -125,7 +128,6 @@
 
       let totalIngresos = 0, totalGastos = 0;
 
-      // 🔹 Ordenar por fecha
       const movimientosOrdenados = [...movimientos].sort((a, b) => {
         const dateA = parsearFecha(a.fecha);
         const dateB = parsearFecha(b.fecha);
@@ -139,7 +141,7 @@
           <td>${m.fecha}</td>
           <td>${m.tipo}</td>
           <td>${m.categoria || ""}</td>
-          <td class="importe-col ${m.tipo}">${m.tipo === "ingreso" ? "+" : "-"}${parseFloat(m.importe).toFixed(2)} €</td>
+          <td class="importe-col">${m.tipo === "ingreso" ? "+" : "-"}${parseFloat(m.importe).toFixed(2)} €</td>
           <td class="accion-col"><button class="delete-btn" onclick="borrarMovimiento(${index})">❌</button></td>
         `;
 
@@ -156,18 +158,13 @@
       const saldoEl = document.getElementById("saldo");
       saldoEl.textContent = saldo.toFixed(2) + " €";
 
-      // 🎨 Colorear según el valor
-      if (saldo > 0) {
-        saldoEl.style.color = "green";
-      } else if (saldo < 0) {
-        saldoEl.style.color = "red";
-      } else {
-        saldoEl.style.color = "black";
-      }
+      if (saldo > 0) saldoEl.style.color = "green";
+      else if (saldo < 0) saldoEl.style.color = "red";
+      else saldoEl.style.color = "black";
     }
 
     function agregarMovimiento() {
-      const fechaRaw = document.getElementById("fecha").value; // yyyy-mm-dd
+      const fechaRaw = document.getElementById("fecha").value;
       const tipo = document.getElementById("tipo").value;
       const categoria = tipo === "gasto" ? document.getElementById("categoria").value : "";
       const importe = document.getElementById("importe").value;
