@@ -71,6 +71,11 @@
       }
     }
 
+    function formatearFecha(fechaISO) {
+      const [anio, mes, dia] = fechaISO.split("-");
+      return `${dia}-${mes}-${anio}`;
+    }
+
     function render() {
       const lista = document.getElementById("listaMovimientos");
       lista.innerHTML = "";
@@ -81,58 +86,4 @@
         let li = document.createElement("li");
         li.innerHTML = `
           <span>${m.fecha} - ${m.tipo} ${m.categoria ? "- " + m.categoria : ""} - 
-            <span class="${m.tipo}">${m.tipo === "ingreso" ? "+" : "-"}${m.importe} €</span>
-          </span>
-          <button class="delete-btn" onclick="borrarMovimiento(${index})">❌</button>
-        `;
-        lista.appendChild(li);
-
-        if (m.tipo === "ingreso") totalIngresos += parseFloat(m.importe);
-        else totalGastos += parseFloat(m.importe);
-      });
-
-      document.getElementById("totalIngresos").textContent = totalIngresos.toFixed(2);
-      document.getElementById("totalGastos").textContent = totalGastos.toFixed(2);
-      document.getElementById("saldo").textContent = (totalIngresos - totalGastos).toFixed(2);
-    }
-
-    function agregarMovimiento() {
-      const fecha = document.getElementById("fecha").value;
-      const tipo = document.getElementById("tipo").value;
-      const categoria = tipo === "gasto" ? document.getElementById("categoria").value : "";
-      const importe = document.getElementById("importe").value;
-
-      if (!fecha || !importe) {
-        alert("Completa la fecha y el importe");
-        return;
-      }
-
-      movimientos.push({ fecha, tipo, categoria, importe });
-      localStorage.setItem("movimientos", JSON.stringify(movimientos));
-
-      render();
-
-      document.getElementById("fecha").value = "";
-      document.getElementById("importe").value = "";
-    }
-
-    function borrarMovimiento(index) {
-      if (confirm("¿Seguro que quieres borrar este movimiento?")) {
-        movimientos.splice(index, 1);
-        localStorage.setItem("movimientos", JSON.stringify(movimientos));
-        render();
-      }
-    }
-
-    render();
-    toggleCategoria(); // inicializa visibilidad al cargar
-
-    // Registrar Service Worker
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js")
-        .then(() => console.log("Service Worker registrado"))
-        .catch((err) => console.log("Error SW:", err));
-    }
-  </script>
-</body>
-</html>
+            <span class="${m.tipo}">${m.tipo === "ingreso" ? "+"
