@@ -14,8 +14,9 @@
     .gasto { color: red; }
     .formulario { margin-bottom: 20px; }
     input, select, button { display: block; width: 100%; margin: 5px 0; padding: 8px; }
-    ul { list-style: none; padding: 0; }
-    li { border-bottom: 1px solid #ddd; padding: 6px 0; display: flex; justify-content: space-between; align-items: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background: #f4f4f4; }
     .delete-btn { background: red; color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
     .hidden { display: none; }
   </style>
@@ -56,7 +57,17 @@
   </div>
 
   <h2>Movimientos</h2>
-  <ul id="listaMovimientos"></ul>
+  <table>
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Tipo / Categoría</th>
+        <th>Importe</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody id="tablaMovimientos"></tbody>
+  </table>
 
   <script>
     let movimientos = JSON.parse(localStorage.getItem("movimientos")) || [];
@@ -77,13 +88,70 @@
     }
 
     function render() {
-      const lista = document.getElementById("listaMovimientos");
-      lista.innerHTML = "";
+      const tabla = document.getElementById("tablaMovimientos");
+      tabla.innerHTML = "";
 
       let totalIngresos = 0, totalGastos = 0;
 
       movimientos.forEach((m, index) => {
-        let li = document.createElement("li");
-        li.innerHTML = `
-          <span>${m.fecha} - ${m.tipo} ${m.categoria ? "- " + m.categoria : ""} - 
-            <span class="${m.tipo}">${m.tipo === "ingreso" ? "+"
+        let fila = document.createElement("tr");
+
+        fila.innerHTML = `
+          <td>${m.fecha}</td>
+          <td>${m.tipo}${m.categoria ? " / " + m.categoria : ""}</td>
+          <td class="${m.tipo}">${m.tipo === "ingreso" ? "+" : "-"}${parseFloat(m.importe).toFixed(2)} €</td>
+          <td><button class="delete-btn" onclick="borrarMovimiento(${index})">❌</button></td>
+        `;
+
+        tabla.appendChild(fila);
+
+        if (m.tipo === "ingreso") totalIngresos += parseFloat(m.importe);
+        else totalGastos += parseFloat(m.importe);
+      });
+
+      document.getElementById("totalIngresos").textContent = totalIngresos.toFixed(2);
+      document.getElementById("totalGastos").textContent = totalGastos.toFixed(2);
+      document.getElementById("saldo").textContent = (totalIngresos - totalGastos).toFixed(2);
+    }
+
+    function agregarMovimiento() {
+      const fechaRaw = document.getElementById("fecha").value; // yyyy-mm-dd
+      const tipo = document.getElementById("tipo").value;
+      const categoria = tipo === "gasto" ? document.getElementById("categoria").value : "";
+      const importe = document.getElementById("importe").value;
+
+      if (!fechaRaw || !importe) {
+        alert("Completa la fecha y el importe");
+        return;
+      }
+
+      const fechaFormateada = formatearFecha(fechaRaw);
+
+      movimientos.push({ fecha: fechaFormateada, tipo, categoria, importe });
+      localStorage.setItem("movimientos", JSON.stringify(movimientos));
+
+      render();
+
+      document.getElementById("fecha").value = "";
+      document.getElementById("importe").value = "";
+    }
+
+    function borrarMovimiento(index) {
+      if (confirm("¿Seguro que quieres borrar este movimiento?")) {
+        movimientos.splice(index, 1);
+        localStorage.setItem("movimientos", JSON.stringify(movimientos));
+        render();
+      }
+    }
+
+    render();
+    toggleCategoria();
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js")
+        .then(() => console.log("Service Worker registrado"))
+        .catch((err) => console.log("Error SW:", err));
+    }
+  </script>
+</body>
+</html>
