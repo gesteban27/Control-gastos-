@@ -16,7 +16,7 @@
     input, select, button { display: block; width: 100%; margin: 5px 0; padding: 8px; }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background: #f4f4f4; }
+    th { background: #f4f4f4; cursor: pointer; }
     td.importe-col { text-align: right; }  /* Importe alineado a la derecha */
     th.accion-col, td.accion-col { width: 4rem; text-align: center; } /* Acción más estrecha */
     .delete-btn { background: red; color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
@@ -62,7 +62,7 @@
   <table>
     <thead>
       <tr>
-        <th>Fecha</th>
+        <th onclick="cambiarOrden()">Fecha ⬍</th>
         <th>Tipo</th>
         <th>Categoría</th>
         <th>Importe</th>
@@ -74,6 +74,7 @@
 
   <script>
     let movimientos = JSON.parse(localStorage.getItem("movimientos")) || [];
+    let ordenAsc = false; // por defecto descendente
 
     function toggleCategoria() {
       const tipo = document.getElementById("tipo").value;
@@ -90,13 +91,25 @@
       return `${dia}-${mes}-${anio}`;
     }
 
+    function parsearFecha(ddmmaaaa) {
+      const [dia, mes, anio] = ddmmaaaa.split("-");
+      return new Date(`${anio}-${mes}-${dia}`);
+    }
+
     function render() {
       const tabla = document.getElementById("tablaMovimientos");
       tabla.innerHTML = "";
 
       let totalIngresos = 0, totalGastos = 0;
 
-      movimientos.forEach((m, index) => {
+      // 🔹 Ordenar por fecha
+      const movimientosOrdenados = [...movimientos].sort((a, b) => {
+        const dateA = parsearFecha(a.fecha);
+        const dateB = parsearFecha(b.fecha);
+        return ordenAsc ? dateA - dateB : dateB - dateA;
+      });
+
+      movimientosOrdenados.forEach((m, index) => {
         let fila = document.createElement("tr");
 
         fila.innerHTML = `
@@ -158,6 +171,11 @@
         localStorage.setItem("movimientos", JSON.stringify(movimientos));
         render();
       }
+    }
+
+    function cambiarOrden() {
+      ordenAsc = !ordenAsc;
+      render();
     }
 
     render();
