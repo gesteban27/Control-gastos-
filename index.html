@@ -61,7 +61,8 @@
     <thead>
       <tr>
         <th>Fecha</th>
-        <th>Tipo / Categoría</th>
+        <th>Tipo</th>
+        <th>Categoría</th>
         <th>Importe</th>
         <th>Acción</th>
       </tr>
@@ -98,7 +99,8 @@
 
         fila.innerHTML = `
           <td>${m.fecha}</td>
-          <td>${m.tipo}${m.categoria ? " / " + m.categoria : ""}</td>
+          <td>${m.tipo}</td>
+          <td>${m.categoria || ""}</td>
           <td class="${m.tipo}">${m.tipo === "ingreso" ? "+" : "-"}${parseFloat(m.importe).toFixed(2)} €</td>
           <td><button class="delete-btn" onclick="borrarMovimiento(${index})">❌</button></td>
         `;
