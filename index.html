@@ -3,389 +3,235 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control de Gastos</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1976d2">
+  <title>Control de Gastos Familiar</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --color-principal: #1976d2;
-      --color-fondo-claro: #f4f4f4;
+      --color-fondo: #f4f6f8;
+      --verde: #4caf50;
+      --rojo: #f44336;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      margin: 10px;
-      max-width: 800px;
-      margin-inline: auto;
-      background-color: #fff;
-      color: #000;
-      transition: background 0.3s, color 0.3s;
-    }
-
-    /* 🔹 Encabezado */
-    h1 {
-      text-align: center;
-      background: linear-gradient(90deg, var(--color-principal), #2196f3);
-      color: white;
-      padding: 12px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      font-weight: 600;
-    }
-
-    /* 🔹 Tarjetas resumen */
-    .resumen {
-      display: flex;
-      gap: 10px;
-      justify-content: space-around;
-      flex-wrap: wrap;
-      margin-top: 15px;
-    }
-
-    .resumen-card {
-      flex: 1;
-      min-width: 100px;
-      background: var(--color-fondo-claro);
-      border-radius: 12px;
-      padding: 10px;
-      text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      transition: transform 0.2s;
-    }
-
-    .resumen-card:hover {
-      transform: scale(1.02);
-    }
-
-    .resumen-card h3 {
       margin: 0;
-      font-size: 1rem;
-      color: #555;
+      padding: 0;
+      background: var(--color-fondo);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
-    .resumen-card p {
-      font-size: 1.3rem;
-      font-weight: bold;
-      margin: 4px 0 0 0;
-    }
-
-    /* 🔹 Botón de gráficos */
-    .boton-graficos {
-      text-align: center;
-      margin-top: 15px;
-    }
-
-    .boton-graficos button {
+    h1 {
       background: var(--color-principal);
       color: white;
-      border: none;
-      border-radius: 10px;
-      padding: 10px 20px;
-      font-size: 1rem;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      transition: background 0.2s;
-    }
-
-    .boton-graficos button:hover {
-      background: #0d47a1;
-    }
-
-    /* 🔹 Tablas y formulario */
-    table {
+      padding: 12px;
+      text-align: center;
       width: 100%;
+      margin: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    table {
       border-collapse: collapse;
-      margin-top: 15px;
+      width: 95%;
+      margin: 10px auto;
+      background: white;
       border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     th, td {
-      border: 1px solid #ddd;
       padding: 8px;
       text-align: center;
+      border-bottom: 1px solid #eee;
     }
 
     th {
-      background: #f9f9f9;
-      cursor: pointer;
+      background: #e0e0e0;
     }
 
-    td.importe-col {
-      text-align: right;
-      font-weight: bold;
+    td.ingreso {
+      color: var(--verde);
     }
 
-    th.accion-col, td.accion-col {
+    td.gasto {
+      color: var(--rojo);
+    }
+
+    tr.ingreso {
+      background-color: rgba(76,175,80,0.1);
+    }
+
+    tr.gasto {
+      background-color: rgba(244,67,54,0.1);
+    }
+
+    .accion-col {
       width: 4rem;
-      text-align: center;
     }
 
-    .delete-btn {
-      background: red;
-      color: white;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .formulario table td { padding: 6px; }
-    .formulario input, .formulario select {
+    .resumen {
       width: 95%;
+      margin: 10px auto;
+      display: flex;
+      justify-content: space-around;
+    }
+
+    .resumen table {
+      width: 100%;
+      text-align: center;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .inputs table {
+      width: 95%;
+      margin: 10px auto;
+      background: white;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    input, select, button {
       padding: 6px;
       border-radius: 6px;
       border: 1px solid #ccc;
+      font-size: 1rem;
+      width: 100%;
     }
 
-    .formulario button {
-      width: 100%;
-      padding: 8px;
+    button {
       background: var(--color-principal);
       color: white;
-      border: none;
-      border-radius: 8px;
       cursor: pointer;
-      transition: background 0.2s;
+      border: none;
+      transition: 0.3s;
     }
 
-    .formulario button:hover {
+    button:hover {
       background: #0d47a1;
     }
 
-    /* 🎨 Colores de filas */
-    .fila-ingreso { background-color: #e6f4ea; }
-    .fila-gasto { background-color: #fdecea; }
-
-    /* 🎨 Colores de importes */
-    .importe-ingreso { color: #1a7f37; }
-    .importe-gasto { color: #b42318; }
-
-    /* 📱 Responsive */
-    @media (max-width: 600px) {
-      h1 { font-size: 1.5rem; }
-      table, th, td { font-size: 14px; padding: 4px; }
-      .formulario input, .formulario select { width: 100%; font-size: 14px; }
-      .delete-btn { padding: 3px 6px; font-size: 12px; }
-      body { margin: 5px; }
-      .resumen { flex-direction: column; gap: 8px; }
+    #saldo {
+      font-weight: bold;
     }
 
-    /* 🌙 Modo oscuro */
-    @media (prefers-color-scheme: dark) {
-      body {
-        background: #0d1117;
-        color: #e6edf3;
-      }
-      table, th, td {
-        border-color: #30363d;
-      }
-      th {
-        background: #161b22;
-      }
-      .resumen-card {
-        background: #161b22;
-      }
-      .fila-ingreso { background-color: #153b2e; }
-      .fila-gasto { background-color: #3b1e1e; }
-      .delete-btn {
-        background: #b42318;
+    #saldo.verde {
+      color: var(--verde);
+    }
+
+    #saldo.rojo {
+      color: var(--rojo);
+    }
+
+    #saldo.negro {
+      color: black;
+    }
+
+    #graficosSection {
+      display: none;
+      width: 95%;
+      text-align: center;
+    }
+
+    canvas {
+      background: white;
+      border-radius: 10px;
+      padding: 10px;
+      margin: 15px 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      width: 100%;
+    }
+
+    @media (max-width: 600px) {
+      table, .inputs table, .resumen table {
+        font-size: 0.9rem;
       }
     }
   </style>
 </head>
 <body>
-  <h1>Control de Gastos</h1>
+  <h1>💰 Control de Gastos Familiar</h1>
 
-  <!-- 🔹 Tarjetas resumen -->
-  <div class="resumen">
-    <div class="resumen-card">
-      <h3>Ingresos</h3>
-      <p id="totalIngresos">0 €</p>
-    </div>
-    <div class="resumen-card">
-      <h3>Gastos</h3>
-      <p id="totalGastos">0 €</p>
-    </div>
-    <div class="resumen-card">
-      <h3>Saldo</h3>
-      <p id="saldo">0 €</p>
-    </div>
-  </div>
-
-  <!-- 🔹 Botón de gráficos -->
-  <div class="boton-graficos">
-    <button onclick="window.location.href='graficos.html'">📊 Ver Gráficos</button>
-  </div>
-
-  <!-- 🔹 Formulario -->
-  <div class="formulario">
-    <table>
-      <thead>
-        <tr id="formHeader">
-          <th>Fecha</th>
-          <th>Tipo</th>
-          <th id="categoriaHeader">Categoría</th>
-          <th>Importe (€)</th>
-          <th>Acción</th>
+  <div id="mainSection">
+    <div class="resumen">
+      <table>
+        <tr>
+          <th>Ingresos (€)</th>
+          <th>Gastos (€)</th>
+          <th>Saldo (€)</th>
         </tr>
-      </thead>
-      <tbody>
-        <tr id="formRow">
+        <tr>
+          <td id="totalIngresos">0.00</td>
+          <td id="totalGastos">0.00</td>
+          <td id="saldo" class="negro">0.00</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="inputs">
+      <table>
+        <tr>
+          <td><label>Fecha</label></td>
           <td><input type="date" id="fecha"></td>
+        </tr>
+        <tr>
+          <td><label>Tipo</label></td>
           <td>
             <select id="tipo" onchange="toggleCategoria()">
               <option value="ingreso">Ingreso</option>
               <option value="gasto">Gasto</option>
             </select>
           </td>
-          <td id="categoriaCell">
+        </tr>
+        <tr id="filaCategoria">
+          <td><label>Categoría</label></td>
+          <td>
             <select id="categoria">
-              <option value="casa">Casa</option>
-              <option value="alimentacion">Alimentación</option>
-              <option value="ocio">Ocio</option>
-              <option value="impuestos">Impuestos</option>
+              <option value="Casa">Casa</option>
+              <option value="Alimentación">Alimentación</option>
+              <option value="Ocio">Ocio</option>
+              <option value="Impuestos">Impuestos</option>
             </select>
           </td>
-          <td><input type="number" id="importe" step="0.01"></td>
-          <td><button onclick="agregarMovimiento()">Añadir</button></td>
         </tr>
-      </tbody>
+        <tr>
+          <td><label>Importe</label></td>
+          <td><input type="number" id="importe" step="0.01"></td>
+        </tr>
+        <tr>
+          <td colspan="2"><button onclick="agregarMovimiento()">➕ Añadir</button></td>
+        </tr>
+      </table>
+    </div>
+
+    <table id="tablaMovimientos">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Tipo</th>
+          <th>Categoría</th>
+          <th>Importe</th>
+          <th class="accion-col">Acción</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
     </table>
+
+    <div style="text-align:center; margin:15px;">
+      <button onclick="mostrarGraficos()">📊 Ver Gráficos</button>
+    </div>
   </div>
 
-  <!-- 🔹 Movimientos -->
-  <h2>Movimientos</h2>
-  <table>
-    <thead>
-      <tr>
-        <th onclick="cambiarOrden()">Fecha ⬍</th>
-        <th>Tipo</th>
-        <th>Categoría</th>
-        <th>Importe</th>
-        <th class="accion-col">Acción</th>
-      </tr>
-    </thead>
-    <tbody id="tablaMovimientos"></tbody>
-  </table>
-
-  <script>
-    let movimientos = JSON.parse(localStorage.getItem("movimientos")) || [];
-    let ordenAsc = false;
-
-    function toggleCategoria() {
-      const tipo = document.getElementById("tipo").value;
-      const categoriaCell = document.getElementById("categoriaCell");
-      const categoriaHeader = document.getElementById("categoriaHeader");
-
-      if (tipo === "ingreso") {
-        categoriaCell.style.display = "none";
-        categoriaHeader.style.display = "none";
-      } else {
-        categoriaCell.style.display = "table-cell";
-        categoriaHeader.style.display = "table-cell";
-      }
-    }
-
-    function formatearFecha(fechaISO) {
-      const [anio, mes, dia] = fechaISO.split("-");
-      return `${dia}-${mes}-${anio}`;
-    }
-
-    function parsearFecha(ddmmaaaa) {
-      const [dia, mes, anio] = ddmmaaaa.split("-");
-      return new Date(`${anio}-${mes}-${dia}`);
-    }
-
-    function render() {
-      const tabla = document.getElementById("tablaMovimientos");
-      tabla.innerHTML = "";
-
-      let totalIngresos = 0, totalGastos = 0;
-
-      const movimientosOrdenados = [...movimientos].sort((a, b) => {
-        const dateA = parsearFecha(a.fecha);
-        const dateB = parsearFecha(b.fecha);
-        return ordenAsc ? dateA - dateB : dateB - dateA;
-      });
-
-      movimientosOrdenados.forEach((m, index) => {
-        const fila = document.createElement("tr");
-        fila.className = m.tipo === "ingreso" ? "fila-ingreso" : "fila-gasto";
-
-        const importeClass = m.tipo === "ingreso" ? "importe-ingreso" : "importe-gasto";
-        const signo = m.tipo === "ingreso" ? "+" : "-";
-
-        fila.innerHTML = `
-          <td>${m.fecha}</td>
-          <td>${m.tipo}</td>
-          <td>${m.categoria || ""}</td>
-          <td class="importe-col ${importeClass}">${signo}${parseFloat(m.importe).toFixed(2)} €</td>
-          <td class="accion-col"><button class="delete-btn" onclick="borrarMovimiento(${index})">❌</button></td>
-        `;
-
-        tabla.appendChild(fila);
-
-        if (m.tipo === "ingreso") totalIngresos += parseFloat(m.importe);
-        else totalGastos += parseFloat(m.importe);
-      });
-
-      document.getElementById("totalIngresos").textContent = totalIngresos.toFixed(2) + " €";
-      document.getElementById("totalGastos").textContent = totalGastos.toFixed(2) + " €";
-
-      const saldo = totalIngresos - totalGastos;
-      const saldoEl = document.getElementById("saldo");
-      saldoEl.textContent = saldo.toFixed(2) + " €";
-
-      if (saldo > 0) saldoEl.style.color = "green";
-      else if (saldo < 0) saldoEl.style.color = "red";
-      else saldoEl.style.color = "black";
-    }
-
-    function agregarMovimiento() {
-      const fechaRaw = document.getElementById("fecha").value;
-      const tipo = document.getElementById("tipo").value;
-      const categoria = tipo === "gasto" ? document.getElementById("categoria").value : "";
-      const importe = document.getElementById("importe").value;
-
-      if (!fechaRaw || !importe) {
-        alert("Completa la fecha y el importe");
-        return;
-      }
-
-      const fechaFormateada = formatearFecha(fechaRaw);
-
-      movimientos.push({ fecha: fechaFormateada, tipo, categoria, importe });
-      localStorage.setItem("movimientos", JSON.stringify(movimientos));
-
-      render();
-
-      document.getElementById("fecha").value = "";
-      document.getElementById("importe").value = "";
-    }
-
-    function borrarMovimiento(index) {
-      if (confirm("¿Seguro que quieres borrar este movimiento?")) {
-        movimientos.splice(index, 1);
-        localStorage.setItem("movimientos", JSON.stringify(movimientos));
-        render();
-      }
-    }
-
-    function cambiarOrden() {
-      ordenAsc = !ordenAsc;
-      render();
-    }
-
-    render();
-    toggleCategoria();
-
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js")
-        .then(() => console.log("Service Worker registrado"))
-        .catch((err) => console.log("Error SW:", err));
-    }
-  </script>
-</body>
-</html>
+  <div id="graficosSection">
+    <button onclick="volverPrincipal()">🔙 Volver</button>
+    <h2>📈 Evolución del Saldo</h2>
+    <canvas id="graficoEvolucion"></canvas>
+    <h2>🥧 Reparto por Categoría</h2>
+    <canvas id="graficoCategorias"></canvas>
