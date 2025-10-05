@@ -22,6 +22,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      max-width: 900px;
+      margin: auto;
     }
 
     h1 {
@@ -54,25 +56,13 @@
       background: #e0e0e0;
     }
 
-    td.ingreso {
-      color: var(--verde);
-    }
+    td.ingreso { color: var(--verde); }
+    td.gasto { color: var(--rojo); }
 
-    td.gasto {
-      color: var(--rojo);
-    }
+    tr.ingreso { background-color: rgba(76,175,80,0.1); }
+    tr.gasto { background-color: rgba(244,67,54,0.1); }
 
-    tr.ingreso {
-      background-color: rgba(76,175,80,0.1);
-    }
-
-    tr.gasto {
-      background-color: rgba(244,67,54,0.1);
-    }
-
-    .accion-col {
-      width: 4rem;
-    }
+    .accion-col { width: 4rem; }
 
     .resumen {
       width: 95%;
@@ -122,17 +112,9 @@
       font-weight: bold;
     }
 
-    #saldo.verde {
-      color: var(--verde);
-    }
-
-    #saldo.rojo {
-      color: var(--rojo);
-    }
-
-    #saldo.negro {
-      color: black;
-    }
+    #saldo.verde { color: var(--verde); }
+    #saldo.rojo { color: var(--rojo); }
+    #saldo.negro { color: black; }
 
     #graficosSection {
       display: none;
@@ -149,10 +131,14 @@
       width: 100%;
     }
 
+    .botones-secundarios {
+      text-align: center;
+      margin-top: 10px;
+    }
+
     @media (max-width: 600px) {
-      table, .inputs table, .resumen table {
-        font-size: 0.9rem;
-      }
+      body { max-width: 100%; }
+      table, .inputs table, .resumen table { font-size: 0.9rem; }
     }
   </style>
 </head>
@@ -224,8 +210,11 @@
       <tbody></tbody>
     </table>
 
-    <div style="text-align:center; margin:15px;">
+    <div class="botones-secundarios">
       <button onclick="mostrarGraficos()">📊 Ver Gráficos</button>
+      <button onclick="exportarDatos()">💾 Exportar</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importarDatos(event)">
+      <button onclick="document.getElementById('importFile').click()">📂 Importar</button>
     </div>
   </div>
 
@@ -303,6 +292,32 @@
       saldo.textContent = balance.toFixed(2);
 
       saldo.className = balance > 0 ? "verde" : balance < 0 ? "rojo" : "negro";
+    }
+
+    function exportarDatos() {
+      const blob = new Blob([JSON.stringify(movimientos, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "gastos_familia.json";
+      a.click();
+    }
+
+    function importarDatos(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          movimientos = JSON.parse(e.target.result);
+          localStorage.setItem("movimientos", JSON.stringify(movimientos));
+          renderMovimientos();
+          actualizarTotales();
+          alert("Datos importados correctamente ✅");
+        } catch {
+          alert("Error al importar los datos");
+        }
+      };
+      reader.readAsText(file);
     }
 
     function mostrarGraficos() {
