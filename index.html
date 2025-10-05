@@ -212,9 +212,6 @@
 
     <div class="botones-secundarios">
       <button onclick="mostrarGraficos()">📊 Ver Gráficos</button>
-      <button onclick="exportarDatos()">💾 Exportar</button>
-      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importarDatos(event)">
-      <button onclick="document.getElementById('importFile').click()">📂 Importar</button>
     </div>
   </div>
 
@@ -229,8 +226,56 @@
   </div>
 
   <script>
-    let movimientos = JSON.parse(localStorage.getItem("movimientos")) || [];
+    // -------------------------
+    // IndexedDB Setup
+    // -------------------------
+    let db;
+    let movimientos = [];
 
+    const request = indexedDB.open("GastosFamiliaDB", 1);
+
+    request.onupgradeneeded = (event) => {
+      db = event.target.result;
+      const store = db.createObjectStore("movimientos", { keyPath: "id", autoIncrement: true });
+      store.createIndex("fecha", "fecha", { unique: false });
+    };
+
+    request.onsuccess = (event) => {
+      db = event.target.result;
+      cargarMovimientos();
+    };
+
+    request.onerror = () => alert("Error al abrir la base de datos");
+
+    // -------------------------
+    // Funciones principales
+    // -------------------------
+    function guardarMovimiento(mov) {
+      const tx = db.transaction("movimientos", "readwrite");
+      tx.objectStore("movimientos").add(mov);
+      tx.oncomplete = cargarMovimientos;
+    }
+
+    function eliminarMovimiento(id) {
+      const tx = db.transaction("movimientos", "readwrite");
+      tx.objectStore("movimientos").delete(id);
+      tx.oncomplete = cargarMovimientos;
+    }
+
+    function cargarMovimientos() {
+      const tx = db.transaction("movimientos", "readonly");
+      const store = tx.objectStore("movimientos");
+      const req = store.getAll();
+      req.onsuccess = () => {
+        movimientos = req.result.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+        renderMovimientos();
+        actualizarTotales();
+      };
+    }
+
+    // -------------------------
+    // Interfaz y lógica
+    // -------------------------
     const tabla = document.querySelector("#tablaMovimientos tbody");
     const totalIngresos = document.getElementById("totalIngresos");
     const totalGastos = document.getElementById("totalGastos");
@@ -247,28 +292,15 @@
       const tipo = document.getElementById("tipo").value;
       const categoria = tipo === "gasto" ? document.getElementById("categoria").value : "";
       const importe = parseFloat(document.getElementById("importe").value);
-
       if (!fecha || !importe) return alert("Completa todos los campos");
 
-      movimientos.push({ fecha, tipo, categoria, importe });
-      movimientos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-      localStorage.setItem("movimientos", JSON.stringify(movimientos));
-
-      renderMovimientos();
-      actualizarTotales();
+      guardarMovimiento({ fecha, tipo, categoria, importe });
       document.getElementById("importe").value = "";
-    }
-
-    function borrarMovimiento(index) {
-      movimientos.splice(index, 1);
-      localStorage.setItem("movimientos", JSON.stringify(movimientos));
-      renderMovimientos();
-      actualizarTotales();
     }
 
     function renderMovimientos() {
       tabla.innerHTML = "";
-      movimientos.forEach((m, index) => {
+      movimientos.forEach((m) => {
         const fila = document.createElement("tr");
         fila.classList.add(m.tipo);
         fila.innerHTML = `
@@ -276,15 +308,15 @@
           <td>${m.tipo}</td>
           <td>${m.categoria || ""}</td>
           <td class="${m.tipo}">${m.tipo === "ingreso" ? "+" : "-"}${m.importe.toFixed(2)} €</td>
-          <td class="accion-col"><button onclick="borrarMovimiento(${index})">❌</button></td>
+          <td class="accion-col"><button onclick="eliminarMovimiento(${m.id})">❌</button></td>
         `;
         tabla.appendChild(fila);
       });
     }
 
     function actualizarTotales() {
-      const ingresos = movimientos.filter(m => m.tipo === "ingreso").reduce((sum, m) => sum + m.importe, 0);
-      const gastos = movimientos.filter(m => m.tipo === "gasto").reduce((sum, m) => sum + m.importe, 0);
+      const ingresos = movimientos.filter(m => m.tipo === "ingreso").reduce((s, m) => s + m.importe, 0);
+      const gastos = movimientos.filter(m => m.tipo === "gasto").reduce((s, m) => s + m.importe, 0);
       const balance = ingresos - gastos;
 
       totalIngresos.textContent = ingresos.toFixed(2);
@@ -292,32 +324,6 @@
       saldo.textContent = balance.toFixed(2);
 
       saldo.className = balance > 0 ? "verde" : balance < 0 ? "rojo" : "negro";
-    }
-
-    function exportarDatos() {
-      const blob = new Blob([JSON.stringify(movimientos, null, 2)], { type: "application/json" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "gastos_familia.json";
-      a.click();
-    }
-
-    function importarDatos(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        try {
-          movimientos = JSON.parse(e.target.result);
-          localStorage.setItem("movimientos", JSON.stringify(movimientos));
-          renderMovimientos();
-          actualizarTotales();
-          alert("Datos importados correctamente ✅");
-        } catch {
-          alert("Error al importar los datos");
-        }
-      };
-      reader.readAsText(file);
     }
 
     function mostrarGraficos() {
@@ -340,7 +346,6 @@
       if (chart2) chart2.destroy();
       if (chart3) chart3.destroy();
 
-      // Evolución del saldo
       const fechas = [...new Set(movimientos.map(m => m.fecha))].sort((a,b) => new Date(a)-new Date(b));
       let saldoAcumulado = 0;
       const dataEvol = fechas.map(f => {
@@ -363,7 +368,6 @@
         }
       });
 
-      // Por categoría
       const categorias = {};
       movimientos.filter(m => m.tipo === "gasto").forEach(m => {
         categorias[m.categoria] = (categorias[m.categoria] || 0) + m.importe;
@@ -380,7 +384,6 @@
         }
       });
 
-      // Ingresos vs Gastos Mensuales
       const meses = {};
       movimientos.forEach(m => {
         const [anio, mes] = m.fecha.split("-").slice(0,2);
@@ -403,8 +406,6 @@
     }
 
     toggleCategoria();
-    renderMovimientos();
-    actualizarTotales();
   </script>
 </body>
 </html>
