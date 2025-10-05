@@ -1,4 +1,4 @@
-const CACHE_NAME = "gastos-cache-v3"; // cambia el número en cada actualización
+const CACHE_NAME = "gastos-cache-v4"; // cambia el número en cada actualización
 const FILES_TO_CACHE = [
   "index.html",
   "manifest.json",
