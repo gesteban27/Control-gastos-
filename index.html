@@ -87,4 +87,137 @@
     </table>
   </div>
 
-  <!-- 🔹 Movimientos -
+  <!-- 🔹 Movimientos -->
+  <h2>Movimientos</h2>
+  <table>
+    <thead>
+      <tr>
+        <th onclick="cambiarOrden()">Fecha ⬍</th>
+        <th>Tipo</th>
+        <th>Categoría</th>
+        <th>Importe</th>
+        <th class="accion-col">Acción</th>
+      </tr>
+    </thead>
+    <tbody id="tablaMovimientos"></tbody>
+  </table>
+
+  <script>
+    let movimientos = JSON.parse(localStorage.getItem("movimientos")) || [];
+    let ordenAsc = false;
+
+    function toggleCategoria() {
+      const tipo = document.getElementById("tipo").value;
+      const categoriaCell = document.getElementById("categoriaCell");
+      const categoriaHeader = document.getElementById("categoriaHeader");
+
+      if (tipo === "ingreso") {
+        categoriaCell.style.display = "none";
+        categoriaHeader.style.display = "none";
+      } else {
+        categoriaCell.style.display = "table-cell";
+        categoriaHeader.style.display = "table-cell";
+      }
+    }
+
+    function formatearFecha(fechaISO) {
+      const [anio, mes, dia] = fechaISO.split("-");
+      return `${dia}-${mes}-${anio}`;
+    }
+
+    function parsearFecha(ddmmaaaa) {
+      const [dia, mes, anio] = ddmmaaaa.split("-");
+      return new Date(`${anio}-${mes}-${dia}`);
+    }
+
+    function render() {
+      const tabla = document.getElementById("tablaMovimientos");
+      tabla.innerHTML = "";
+
+      let totalIngresos = 0, totalGastos = 0;
+
+      const movimientosOrdenados = [...movimientos].sort((a, b) => {
+        const dateA = parsearFecha(a.fecha);
+        const dateB = parsearFecha(b.fecha);
+        return ordenAsc ? dateA - dateB : dateB - dateA;
+      });
+
+      movimientosOrdenados.forEach((m, index) => {
+        const fila = document.createElement("tr");
+        fila.className = m.tipo === "ingreso" ? "fila-ingreso" : "fila-gasto";
+
+        const importeClass = m.tipo === "ingreso" ? "importe-ingreso" : "importe-gasto";
+        const signo = m.tipo === "ingreso" ? "+" : "-";
+
+        fila.innerHTML = `
+          <td>${m.fecha}</td>
+          <td>${m.tipo}</td>
+          <td>${m.categoria || ""}</td>
+          <td class="importe-col ${importeClass}">${signo}${parseFloat(m.importe).toFixed(2)} €</td>
+          <td class="accion-col"><button class="delete-btn" onclick="borrarMovimiento(${index})">❌</button></td>
+        `;
+
+        tabla.appendChild(fila);
+
+        if (m.tipo === "ingreso") totalIngresos += parseFloat(m.importe);
+        else totalGastos += parseFloat(m.importe);
+      });
+
+      document.getElementById("totalIngresos").textContent = totalIngresos.toFixed(2) + " €";
+      document.getElementById("totalGastos").textContent = totalGastos.toFixed(2) + " €";
+
+      const saldo = totalIngresos - totalGastos;
+      const saldoEl = document.getElementById("saldo");
+      saldoEl.textContent = saldo.toFixed(2) + " €";
+
+      if (saldo > 0) saldoEl.style.color = "green";
+      else if (saldo < 0) saldoEl.style.color = "red";
+      else saldoEl.style.color = "black";
+    }
+
+    function agregarMovimiento() {
+      const fechaRaw = document.getElementById("fecha").value;
+      const tipo = document.getElementById("tipo").value;
+      const categoria = tipo === "gasto" ? document.getElementById("categoria").value : "";
+      const importe = document.getElementById("importe").value;
+
+      if (!fechaRaw || !importe) {
+        alert("Completa la fecha y el importe");
+        return;
+      }
+
+      const fechaFormateada = formatearFecha(fechaRaw);
+
+      movimientos.push({ fecha: fechaFormateada, tipo, categoria, importe });
+      localStorage.setItem("movimientos", JSON.stringify(movimientos));
+
+      render();
+
+      document.getElementById("fecha").value = "";
+      document.getElementById("importe").value = "";
+    }
+
+    function borrarMovimiento(index) {
+      if (confirm("¿Seguro que quieres borrar este movimiento?")) {
+        movimientos.splice(index, 1);
+        localStorage.setItem("movimientos", JSON.stringify(movimientos));
+        render();
+      }
+    }
+
+    function cambiarOrden() {
+      ordenAsc = !ordenAsc;
+      render();
+    }
+
+    render();
+    toggleCategoria();
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js")
+        .then(() => console.log("Service Worker registrado"))
+        .catch((err) => console.log("Error SW:", err));
+    }
+  </script>
+</body>
+</html>
