@@ -235,3 +235,161 @@
     <canvas id="graficoEvolucion"></canvas>
     <h2>🥧 Reparto por Categoría</h2>
     <canvas id="graficoCategorias"></canvas>
+    <h2>📊 Ingresos vs Gastos Mensuales</h2>
+    <canvas id="graficoMensual"></canvas>
+  </div>
+
+  <script>
+    let movimientos = JSON.parse(localStorage.getItem("movimientos")) || [];
+
+    const tabla = document.querySelector("#tablaMovimientos tbody");
+    const totalIngresos = document.getElementById("totalIngresos");
+    const totalGastos = document.getElementById("totalGastos");
+    const saldo = document.getElementById("saldo");
+    let chart1, chart2, chart3;
+
+    function toggleCategoria() {
+      const tipo = document.getElementById("tipo").value;
+      document.getElementById("filaCategoria").style.display = tipo === "gasto" ? "table-row" : "none";
+    }
+
+    function agregarMovimiento() {
+      const fecha = document.getElementById("fecha").value;
+      const tipo = document.getElementById("tipo").value;
+      const categoria = tipo === "gasto" ? document.getElementById("categoria").value : "";
+      const importe = parseFloat(document.getElementById("importe").value);
+
+      if (!fecha || !importe) return alert("Completa todos los campos");
+
+      movimientos.push({ fecha, tipo, categoria, importe });
+      movimientos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+      localStorage.setItem("movimientos", JSON.stringify(movimientos));
+
+      renderMovimientos();
+      actualizarTotales();
+      document.getElementById("importe").value = "";
+    }
+
+    function borrarMovimiento(index) {
+      movimientos.splice(index, 1);
+      localStorage.setItem("movimientos", JSON.stringify(movimientos));
+      renderMovimientos();
+      actualizarTotales();
+    }
+
+    function renderMovimientos() {
+      tabla.innerHTML = "";
+      movimientos.forEach((m, index) => {
+        const fila = document.createElement("tr");
+        fila.classList.add(m.tipo);
+        fila.innerHTML = `
+          <td>${m.fecha.split("-").reverse().join("-")}</td>
+          <td>${m.tipo}</td>
+          <td>${m.categoria || ""}</td>
+          <td class="${m.tipo}">${m.tipo === "ingreso" ? "+" : "-"}${m.importe.toFixed(2)} €</td>
+          <td class="accion-col"><button onclick="borrarMovimiento(${index})">❌</button></td>
+        `;
+        tabla.appendChild(fila);
+      });
+    }
+
+    function actualizarTotales() {
+      const ingresos = movimientos.filter(m => m.tipo === "ingreso").reduce((sum, m) => sum + m.importe, 0);
+      const gastos = movimientos.filter(m => m.tipo === "gasto").reduce((sum, m) => sum + m.importe, 0);
+      const balance = ingresos - gastos;
+
+      totalIngresos.textContent = ingresos.toFixed(2);
+      totalGastos.textContent = gastos.toFixed(2);
+      saldo.textContent = balance.toFixed(2);
+
+      saldo.className = balance > 0 ? "verde" : balance < 0 ? "rojo" : "negro";
+    }
+
+    function mostrarGraficos() {
+      document.getElementById("mainSection").style.display = "none";
+      document.getElementById("graficosSection").style.display = "block";
+      generarGraficos();
+    }
+
+    function volverPrincipal() {
+      document.getElementById("graficosSection").style.display = "none";
+      document.getElementById("mainSection").style.display = "block";
+    }
+
+    function generarGraficos() {
+      const ctx1 = document.getElementById("graficoEvolucion");
+      const ctx2 = document.getElementById("graficoCategorias");
+      const ctx3 = document.getElementById("graficoMensual");
+
+      if (chart1) chart1.destroy();
+      if (chart2) chart2.destroy();
+      if (chart3) chart3.destroy();
+
+      // Evolución del saldo
+      const fechas = [...new Set(movimientos.map(m => m.fecha))].sort((a,b) => new Date(a)-new Date(b));
+      let saldoAcumulado = 0;
+      const dataEvol = fechas.map(f => {
+        const movDia = movimientos.filter(m => m.fecha === f);
+        movDia.forEach(m => saldoAcumulado += (m.tipo === "ingreso" ? m.importe : -m.importe));
+        return saldoAcumulado;
+      });
+
+      chart1 = new Chart(ctx1, {
+        type: "line",
+        data: {
+          labels: fechas.map(f => f.split("-").reverse().join("-")),
+          datasets: [{
+            label: "Saldo acumulado (€)",
+            data: dataEvol,
+            borderColor: "#1976d2",
+            backgroundColor: "rgba(25,118,210,0.2)",
+            fill: true
+          }]
+        }
+      });
+
+      // Por categoría
+      const categorias = {};
+      movimientos.filter(m => m.tipo === "gasto").forEach(m => {
+        categorias[m.categoria] = (categorias[m.categoria] || 0) + m.importe;
+      });
+
+      chart2 = new Chart(ctx2, {
+        type: "doughnut",
+        data: {
+          labels: Object.keys(categorias),
+          datasets: [{
+            data: Object.values(categorias),
+            backgroundColor: ["#f44336","#ff9800","#2196f3","#9c27b0"]
+          }]
+        }
+      });
+
+      // Ingresos vs Gastos Mensuales
+      const meses = {};
+      movimientos.forEach(m => {
+        const [anio, mes] = m.fecha.split("-").slice(0,2);
+        const clave = `${mes}-${anio}`;
+        if (!meses[clave]) meses[clave] = { ingresos: 0, gastos: 0 };
+        if (m.tipo === "ingreso") meses[clave].ingresos += m.importe;
+        else meses[clave].gastos += m.importe;
+      });
+
+      chart3 = new Chart(ctx3, {
+        type: "bar",
+        data: {
+          labels: Object.keys(meses),
+          datasets: [
+            { label: "Ingresos", data: Object.values(meses).map(m => m.ingresos), backgroundColor: "#4caf50" },
+            { label: "Gastos", data: Object.values(meses).map(m => m.gastos), backgroundColor: "#f44336" }
+          ]
+        }
+      });
+    }
+
+    toggleCategoria();
+    renderMovimientos();
+    actualizarTotales();
+  </script>
+</body>
+</html>
