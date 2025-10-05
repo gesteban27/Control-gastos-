@@ -1,411 +1,495 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control de Gastos Familiar</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Control de Gastos</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta name="theme-color" content="#1976d2">
   <style>
-    :root {
+    :root{
       --color-principal: #1976d2;
       --color-fondo: #f4f6f8;
       --verde: #4caf50;
       --rojo: #f44336;
     }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* ===== Body & container ===== */
+    body{
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
       margin: 0;
-      padding: 0;
+      padding: 1rem;
       background: var(--color-fondo);
-      color: #333;
+      color: #222;
+      min-height: 100vh;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      max-width: 900px;
-      margin: auto;
+      justify-content: center;
+      align-items: flex-start;
     }
 
-    h1 {
-      background: var(--color-principal);
-      color: white;
-      padding: 12px;
-      text-align: center;
+    .container{
       width: 100%;
-      margin: 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      max-width: 420px; /* móvil por defecto */
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 6px 18px rgba(17,24,39,0.08);
+      overflow: hidden;
+      margin-bottom: 2rem;
+      transition: max-width 0.28s ease, padding 0.28s ease;
     }
 
-    table {
+    /* ===== Header ===== */
+    header{
+      background: linear-gradient(90deg, var(--color-principal), #2196f3);
+      color: white;
+      padding: 14px 16px;
+    }
+    header h1{
+      margin: 0;
+      font-size: 1.15rem;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    main{ padding: 16px; }
+
+    /* ===== Resumen tarjetas ===== */
+    .resumen {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: stretch;
+      margin-bottom: 12px;
+    }
+    .resumen-card{
+      flex: 1;
+      min-width: 0;
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .resumen-card h3{ margin: 0; font-size: 0.9rem; color: #666; }
+    .resumen-card p{ margin: 6px 0 0; font-size: 1.15rem; font-weight: 700; }
+
+    /* ===== Formulario tabulado ===== */
+    .form-table, .mov-table {
+      width: 100%;
       border-collapse: collapse;
-      width: 95%;
-      margin: 10px auto;
       background: white;
       border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     }
-
-    th, td {
+    .form-table th, .form-table td, .mov-table th, .mov-table td{
       padding: 8px;
       text-align: center;
       border-bottom: 1px solid #eee;
     }
+    .form-table thead th{ background: #fafafa; font-weight: 600; color: #444; }
+    .mov-table thead th{ background: #fafafa; font-weight: 600; color: #444; }
 
-    th {
-      background: #e0e0e0;
-    }
-
-    td.ingreso { color: var(--verde); }
-    td.gasto { color: var(--rojo); }
-
-    tr.ingreso { background-color: rgba(76,175,80,0.1); }
-    tr.gasto { background-color: rgba(244,67,54,0.1); }
-
-    .accion-col { width: 4rem; }
-
-    .resumen {
-      width: 95%;
-      margin: 10px auto;
-      display: flex;
-      justify-content: space-around;
-    }
-
-    .resumen table {
+    .form-row input, .form-row select {
       width: 100%;
-      text-align: center;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    .inputs table {
-      width: 95%;
-      margin: 10px auto;
-      background: white;
-      border-radius: 10px;
-      padding: 10px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    input, select, button {
       padding: 6px;
       border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
-      width: 100%;
+      border: 1px solid #ddd;
+      box-sizing: border-box;
+      font-size: 0.95rem;
     }
 
-    button {
+    .btn-primary {
       background: var(--color-principal);
       color: white;
-      cursor: pointer;
       border: none;
-      transition: 0.3s;
+      padding: 8px 10px;
+      border-radius: 8px;
+      width: 100%;
+      cursor: pointer;
+      font-weight: 700;
     }
+    .btn-primary:hover { background: #0d47a1; }
 
-    button:hover {
-      background: #0d47a1;
-    }
+    .accion-col{ width: 4rem; }
 
-    #saldo {
-      font-weight: bold;
-    }
+    /* ===== Colores filas/importe ===== */
+    tr.ingreso { background-color: rgba(76,175,80,0.08); }
+    tr.gasto { background-color: rgba(244,67,54,0.06); }
 
+    .importe-col { text-align: right; font-weight: 700; }
+    .importe-ingreso { color: var(--verde); }
+    .importe-gasto { color: var(--rojo); }
+
+    /* ===== Botones inferiores ===== */
+    .controls { display: flex; gap: 8px; margin-top: 12px; justify-content: center; }
+    .controls button { flex: 1; }
+
+    /* ===== Gráficos ===== */
+    #graficosSection{ display: none; padding: 8px 0 20px; }
+    canvas{ width: 100% !important; height: 260px !important; border-radius: 8px; }
+
+    /* ===== Saldo colores ===== */
+    #saldo { font-weight: 800; font-size: 1.1rem; }
     #saldo.verde { color: var(--verde); }
     #saldo.rojo { color: var(--rojo); }
-    #saldo.negro { color: black; }
+    #saldo.negro { color: #222; }
 
-    #graficosSection {
-      display: none;
-      width: 95%;
-      text-align: center;
+    /* ===== Responsive: ampliar en escritorio/tablet ===== */
+    @media (min-width: 768px){
+      .container{ max-width: 980px; padding: 12px; }
+      main{ display: grid; grid-template-columns: 1fr 420px; gap: 18px; }
+      /* izquierda: movimientos + formulario, derecha: resumen + controles */
+      .left-col{ display: flex; flex-direction: column; gap: 12px; }
+      .right-col{ display:flex; flex-direction: column; gap: 12px; align-items: stretch; }
+      /* mover resumen into right */
+      .resumen{ flex-direction: column; gap: 12px; align-items: stretch; }
+      canvas{ height: 320px !important; }
     }
 
-    canvas {
-      background: white;
-      border-radius: 10px;
-      padding: 10px;
-      margin: 15px 0;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      width: 100%;
-    }
-
-    .botones-secundarios {
-      text-align: center;
-      margin-top: 10px;
-    }
-
-    @media (max-width: 600px) {
-      body { max-width: 100%; }
-      table, .inputs table, .resumen table { font-size: 0.9rem; }
+    @media (max-width: 420px){
+      .form-table th, .form-table td, .mov-table th, .mov-table td{ padding: 6px; font-size: 0.92rem; }
+      canvas{ height: 220px !important; }
     }
   </style>
 </head>
 <body>
-  <h1>💰 Control de Gastos Familiar</h1>
+  <div class="container" role="application">
+    <header><h1>Control de Gastos</h1></header>
 
-  <div id="mainSection">
-    <div class="resumen">
-      <table>
-        <tr>
-          <th>Ingresos (€)</th>
-          <th>Gastos (€)</th>
-          <th>Saldo (€)</th>
-        </tr>
-        <tr>
-          <td id="totalIngresos">0.00</td>
-          <td id="totalGastos">0.00</td>
-          <td id="saldo" class="negro">0.00</td>
-        </tr>
-      </table>
-    </div>
+    <main>
+      <!-- Left column: formulario + movimientos -->
+      <div class="left-col" style="padding: 0 16px 16px 16px;">
+        <!-- Resumen (en móviles se muestra arriba; en escritorio se reubica) -->
+        <div class="resumen" style="display:none;" id="resumenHidden"></div>
 
-    <div class="inputs">
-      <table>
-        <tr>
-          <td><label>Fecha</label></td>
-          <td><input type="date" id="fecha"></td>
-        </tr>
-        <tr>
-          <td><label>Tipo</label></td>
-          <td>
-            <select id="tipo" onchange="toggleCategoria()">
-              <option value="ingreso">Ingreso</option>
-              <option value="gasto">Gasto</option>
-            </select>
-          </td>
-        </tr>
-        <tr id="filaCategoria">
-          <td><label>Categoría</label></td>
-          <td>
-            <select id="categoria">
-              <option value="Casa">Casa</option>
-              <option value="Alimentación">Alimentación</option>
-              <option value="Ocio">Ocio</option>
-              <option value="Impuestos">Impuestos</option>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <td><label>Importe</label></td>
-          <td><input type="number" id="importe" step="0.01"></td>
-        </tr>
-        <tr>
-          <td colspan="2"><button onclick="agregarMovimiento()">➕ Añadir</button></td>
-        </tr>
-      </table>
-    </div>
+        <!-- Formulario -->
+        <div>
+          <table class="form-table" aria-label="Formulario de entrada">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th id="categoriaHeader">Categoría</th>
+                <th>Importe (€)</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="form-row" id="formRow">
+                <td><input id="fecha" type="date" /></td>
+                <td>
+                  <select id="tipo" onchange="toggleCategoria()">
+                    <option value="ingreso">Ingreso</option>
+                    <option value="gasto">Gasto</option>
+                  </select>
+                </td>
+                <td id="categoriaCell">
+                  <select id="categoria">
+                    <option>Casa</option>
+                    <option>Alimentación</option>
+                    <option>Ocio</option>
+                    <option>Impuestos</option>
+                  </select>
+                </td>
+                <td><input id="importe" type="number" step="0.01" /></td>
+                <td><button class="btn-primary" onclick="agregarMovimiento()">➕</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-    <table id="tablaMovimientos">
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Tipo</th>
-          <th>Categoría</th>
-          <th>Importe</th>
-          <th class="accion-col">Acción</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+        <!-- Movimientos -->
+        <div>
+          <table class="mov-table" id="tablaMovimientos" aria-label="Movimientos">
+            <thead>
+              <tr>
+                <th onclick="toggleOrden()">Fecha ⬍</th>
+                <th>Tipo</th>
+                <th>Categoría</th>
+                <th>Importe</th>
+                <th class="accion-col">Acción</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
 
-    <div class="botones-secundarios">
-      <button onclick="mostrarGraficos()">📊 Ver Gráficos</button>
-    </div>
+        <!-- Botones -->
+        <div class="controls" style="padding: 0 6px;">
+          <button onclick="mostrarGraficos()" class="btn-primary">📊 Ver Gráficos</button>
+        </div>
+      </div>
+
+      <!-- Right column: resumen + gráficos (resumen también visible en mobile above) -->
+      <div class="right-col" style="padding: 0 16px 16px 16px;">
+        <div class="resumen" id="resumenCards" aria-hidden="false" style="display:block;">
+          <div class="resumen-card">
+            <h3>Ingresos</h3>
+            <p id="totalIngresos">0.00</p>
+          </div>
+          <div class="resumen-card">
+            <h3>Gastos</h3>
+            <p id="totalGastos">0.00</p>
+          </div>
+          <div class="resumen-card">
+            <h3>Saldo</h3>
+            <p id="saldo" class="negro">0.00</p>
+          </div>
+        </div>
+
+        <!-- sección de gráficos (interna) -->
+        <div id="graficosSection" aria-hidden="true" style="display:none;">
+          <div style="margin-top:8px; text-align:center;">
+            <button class="btn-primary" onclick="volverPrincipal()">🔙 Volver</button>
+          </div>
+
+          <h3 style="margin:12px 0 6px;">Evolución del saldo</h3>
+          <canvas id="graficoEvolucion"></canvas>
+
+          <h3 style="margin:12px 0 6px;">Reparto por categoría (gastos)</h3>
+          <canvas id="graficoCategorias"></canvas>
+
+          <h3 style="margin:12px 0 6px;">Ingresos vs Gastos por mes</h3>
+          <canvas id="graficoMensual"></canvas>
+        </div>
+      </div>
+    </main>
   </div>
 
-  <div id="graficosSection">
-    <button onclick="volverPrincipal()">🔙 Volver</button>
-    <h2>📈 Evolución del Saldo</h2>
-    <canvas id="graficoEvolucion"></canvas>
-    <h2>🥧 Reparto por Categoría</h2>
-    <canvas id="graficoCategorias"></canvas>
-    <h2>📊 Ingresos vs Gastos Mensuales</h2>
-    <canvas id="graficoMensual"></canvas>
-  </div>
+<script>
+/* ===============================
+   IndexedDB - almacenamiento
+   =============================== */
+let db;
+let movimientos = [];
+let ordenAsc = false;
 
-  <script>
-    // -------------------------
-    // IndexedDB Setup
-    // -------------------------
-    let db;
-    let movimientos = [];
-
-    const request = indexedDB.open("GastosFamiliaDB", 1);
-
-    request.onupgradeneeded = (event) => {
-      db = event.target.result;
+function abrirBD() {
+  const req = indexedDB.open("GastosFamiliaDB_v2", 1);
+  req.onupgradeneeded = (e) => {
+    db = e.target.result;
+    if (!db.objectStoreNames.contains("movimientos")) {
       const store = db.createObjectStore("movimientos", { keyPath: "id", autoIncrement: true });
       store.createIndex("fecha", "fecha", { unique: false });
-    };
-
-    request.onsuccess = (event) => {
-      db = event.target.result;
-      cargarMovimientos();
-    };
-
-    request.onerror = () => alert("Error al abrir la base de datos");
-
-    // -------------------------
-    // Funciones principales
-    // -------------------------
-    function guardarMovimiento(mov) {
-      const tx = db.transaction("movimientos", "readwrite");
-      tx.objectStore("movimientos").add(mov);
-      tx.oncomplete = cargarMovimientos;
     }
+  };
+  req.onsuccess = (e) => {
+    db = e.target.result;
+    cargarMovimientos();
+  };
+  req.onerror = (e) => {
+    console.error("Error abriendo IndexedDB", e);
+    alert("No se pudo acceder al almacenamiento local.");
+  };
+}
 
-    function eliminarMovimiento(id) {
-      const tx = db.transaction("movimientos", "readwrite");
-      tx.objectStore("movimientos").delete(id);
-      tx.oncomplete = cargarMovimientos;
-    }
+function agregarRegistroDB(obj) {
+  const tx = db.transaction("movimientos","readwrite");
+  const store = tx.objectStore("movimientos");
+  store.add(obj);
+  tx.oncomplete = () => cargarMovimientos();
+  tx.onerror = (e) => console.error("Error al añadir", e);
+}
 
-    function cargarMovimientos() {
-      const tx = db.transaction("movimientos", "readonly");
-      const store = tx.objectStore("movimientos");
-      const req = store.getAll();
-      req.onsuccess = () => {
-        movimientos = req.result.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-        renderMovimientos();
-        actualizarTotales();
-      };
-    }
+function borrarRegistroDB(id) {
+  const tx = db.transaction("movimientos","readwrite");
+  const store = tx.objectStore("movimientos");
+  store.delete(Number(id));
+  tx.oncomplete = () => cargarMovimientos();
+  tx.onerror = (e) => console.error("Error al eliminar", e);
+}
 
-    // -------------------------
-    // Interfaz y lógica
-    // -------------------------
-    const tabla = document.querySelector("#tablaMovimientos tbody");
-    const totalIngresos = document.getElementById("totalIngresos");
-    const totalGastos = document.getElementById("totalGastos");
-    const saldo = document.getElementById("saldo");
-    let chart1, chart2, chart3;
+function cargarMovimientos() {
+  const tx = db.transaction("movimientos","readonly");
+  const store = tx.objectStore("movimientos");
+  const req = store.getAll();
+  req.onsuccess = () => {
+    movimientos = req.result || [];
+    // ordenar por fecha asc por defecto
+    movimientos.sort((a,b)=> new Date(a.fecha) - new Date(b.fecha));
+    renderMovimientos();
+    actualizarTotales();
+  };
+  req.onerror = (e) => console.error("Error al leer movs", e);
+}
 
-    function toggleCategoria() {
-      const tipo = document.getElementById("tipo").value;
-      document.getElementById("filaCategoria").style.display = tipo === "gasto" ? "table-row" : "none";
-    }
+/* ===============================
+   UI / lógica de la app
+   =============================== */
 
-    function agregarMovimiento() {
-      const fecha = document.getElementById("fecha").value;
-      const tipo = document.getElementById("tipo").value;
-      const categoria = tipo === "gasto" ? document.getElementById("categoria").value : "";
-      const importe = parseFloat(document.getElementById("importe").value);
-      if (!fecha || !importe) return alert("Completa todos los campos");
+const tbody = document.querySelector("#tablaMovimientos tbody");
+const elTotalIngresos = document.getElementById("totalIngresos");
+const elTotalGastos = document.getElementById("totalGastos");
+const elSaldo = document.getElementById("saldo");
 
-      guardarMovimiento({ fecha, tipo, categoria, importe });
-      document.getElementById("importe").value = "";
-    }
+function toggleCategoria(){
+  const tipo = document.getElementById("tipo").value;
+  const catCell = document.getElementById("categoriaCell");
+  const catHeader = document.getElementById("categoriaHeader");
+  if(tipo === "ingreso"){
+    catCell.style.display = "none";
+    catHeader.style.display = "none";
+  } else {
+    catCell.style.display = "table-cell";
+    catHeader.style.display = "table-cell";
+  }
+}
 
-    function renderMovimientos() {
-      tabla.innerHTML = "";
-      movimientos.forEach((m) => {
-        const fila = document.createElement("tr");
-        fila.classList.add(m.tipo);
-        fila.innerHTML = `
-          <td>${m.fecha.split("-").reverse().join("-")}</td>
-          <td>${m.tipo}</td>
-          <td>${m.categoria || ""}</td>
-          <td class="${m.tipo}">${m.tipo === "ingreso" ? "+" : "-"}${m.importe.toFixed(2)} €</td>
-          <td class="accion-col"><button onclick="eliminarMovimiento(${m.id})">❌</button></td>
-        `;
-        tabla.appendChild(fila);
-      });
-    }
+function agregarMovimiento(){
+  const fechaRaw = document.getElementById("fecha").value;
+  const tipo = document.getElementById("tipo").value;
+  const categoria = tipo === "gasto" ? document.getElementById("categoria").value : "";
+  const importeRaw = document.getElementById("importe").value;
+  const importe = parseFloat(importeRaw);
+  if(!fechaRaw || !importeRaw || isNaN(importe)){
+    return alert("Por favor completa fecha y importe válidos.");
+  }
+  // guardamos la fecha tal cual (yyyy-mm-dd)
+  agregarRegistroDB({ fecha: fechaRaw, tipo, categoria, importe });
+  // limpiar importe
+  document.getElementById("importe").value = "";
+}
 
-    function actualizarTotales() {
-      const ingresos = movimientos.filter(m => m.tipo === "ingreso").reduce((s, m) => s + m.importe, 0);
-      const gastos = movimientos.filter(m => m.tipo === "gasto").reduce((s, m) => s + m.importe, 0);
-      const balance = ingresos - gastos;
+function renderMovimientos(){
+  tbody.innerHTML = "";
+  // ordenar según ordenAsc (por defecto asc)
+  const copia = [...movimientos].sort((a,b)=>{
+    const da = new Date(a.fecha), db = new Date(b.fecha);
+    return ordenAsc ? da - db : db - da;
+  });
 
-      totalIngresos.textContent = ingresos.toFixed(2);
-      totalGastos.textContent = gastos.toFixed(2);
-      saldo.textContent = balance.toFixed(2);
+  copia.forEach((m)=>{
+    const tr = document.createElement("tr");
+    tr.classList.add(m.tipo === "ingreso" ? "ingreso" : "gasto");
+    const fechaDisplay = m.fecha.split("-").reverse().join("-");
+    const importeClass = m.tipo === "ingreso" ? "importe-ingreso" : "importe-gasto";
+    tr.innerHTML = `
+      <td>${fechaDisplay}</td>
+      <td>${m.tipo}</td>
+      <td>${m.categoria || ""}</td>
+      <td class="importe-col ${importeClass}">${m.tipo === "ingreso" ? "+" : "-"}${m.importe.toFixed(2)} €</td>
+      <td class="accion-col"><button onclick="borrarMovimiento(${m.id})">❌</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
-      saldo.className = balance > 0 ? "verde" : balance < 0 ? "rojo" : "negro";
-    }
+function borrarMovimiento(id){
+  if(confirm("¿Eliminar este movimiento?")) {
+    borrarRegistroDB(id);
+  }
+}
 
-    function mostrarGraficos() {
-      document.getElementById("mainSection").style.display = "none";
-      document.getElementById("graficosSection").style.display = "block";
-      generarGraficos();
-    }
+function actualizarTotales(){
+  const ingresos = movimientos.filter(m => m.tipo === "ingreso").reduce((s,m)=> s + m.importe, 0);
+  const gastos = movimientos.filter(m => m.tipo === "gasto").reduce((s,m)=> s + m.importe, 0);
+  const balance = ingresos - gastos;
+  elTotalIngresos.textContent = ingresos.toFixed(2);
+  elTotalGastos.textContent = gastos.toFixed(2);
+  elSaldo.textContent = balance.toFixed(2);
+  elSaldo.className = balance > 0 ? "verde" : balance < 0 ? "rojo" : "negro";
+}
 
-    function volverPrincipal() {
-      document.getElementById("graficosSection").style.display = "none";
-      document.getElementById("mainSection").style.display = "block";
-    }
+/* ===============================
+   Gráficos (Chart.js)
+   =============================== */
+let chart1, chart2, chart3;
+function mostrarGraficos(){
+  document.getElementById("graficosSection").style.display = "block";
+  // en layout de escritorio mostramos en right-col; en móvil navegamos (secciones ya dentro)
+  generarGraficos();
+  // si está en diseño con main grid, no esconder main; aquí preferimos que muestre la sección de graficos
+  // En nuestra estructura, está en right-col; aseguramos scroll hasta allí en móviles
+  document.getElementById("graficosSection").scrollIntoView({behavior:"smooth"});
+}
 
-    function generarGraficos() {
-      const ctx1 = document.getElementById("graficoEvolucion");
-      const ctx2 = document.getElementById("graficoCategorias");
-      const ctx3 = document.getElementById("graficoMensual");
+function volverPrincipal(){
+  // simplemente hacemos scroll arriba y destruyimos gráficos si hay
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
-      if (chart1) chart1.destroy();
-      if (chart2) chart2.destroy();
-      if (chart3) chart3.destroy();
+function generarGraficos(){
+  const ctx1 = document.getElementById("graficoEvolucion").getContext("2d");
+  const ctx2 = document.getElementById("graficoCategorias").getContext("2d");
+  const ctx3 = document.getElementById("graficoMensual").getContext("2d");
 
-      const fechas = [...new Set(movimientos.map(m => m.fecha))].sort((a,b) => new Date(a)-new Date(b));
-      let saldoAcumulado = 0;
-      const dataEvol = fechas.map(f => {
-        const movDia = movimientos.filter(m => m.fecha === f);
-        movDia.forEach(m => saldoAcumulado += (m.tipo === "ingreso" ? m.importe : -m.importe));
-        return saldoAcumulado;
-      });
+  if(chart1) chart1.destroy();
+  if(chart2) chart2.destroy();
+  if(chart3) chart3.destroy();
 
-      chart1 = new Chart(ctx1, {
-        type: "line",
-        data: {
-          labels: fechas.map(f => f.split("-").reverse().join("-")),
-          datasets: [{
-            label: "Saldo acumulado (€)",
-            data: dataEvol,
-            borderColor: "#1976d2",
-            backgroundColor: "rgba(25,118,210,0.2)",
-            fill: true
-          }]
-        }
-      });
+  // Evolución: saldo acumulado por fecha
+  const fechas = [...new Set(movimientos.map(m => m.fecha))].sort((a,b)=> new Date(a)-new Date(b));
+  let acum = 0;
+  const dataEvol = fechas.map(f=>{
+    movimientos.filter(m=>m.fecha===f).forEach(m=> acum += (m.tipo === "ingreso" ? m.importe : -m.importe));
+    return acum;
+  });
 
-      const categorias = {};
-      movimientos.filter(m => m.tipo === "gasto").forEach(m => {
-        categorias[m.categoria] = (categorias[m.categoria] || 0) + m.importe;
-      });
+  chart1 = new Chart(ctx1, {
+    type: "line",
+    data: {
+      labels: fechas.map(f=>f.split("-").reverse().join("-")),
+      datasets: [{ label: "Saldo acumulado (€)", data: dataEvol, borderColor: "#1976d2", backgroundColor: "rgba(25,118,210,0.18)", fill:true }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
 
-      chart2 = new Chart(ctx2, {
-        type: "doughnut",
-        data: {
-          labels: Object.keys(categorias),
-          datasets: [{
-            data: Object.values(categorias),
-            backgroundColor: ["#f44336","#ff9800","#2196f3","#9c27b0"]
-          }]
-        }
-      });
+  // Por categoría (solo gastos)
+  const porCat = {};
+  movimientos.filter(m=> m.tipo === "gasto").forEach(m => porCat[m.categoria] = (porCat[m.categoria] || 0) + m.importe);
+  chart2 = new Chart(ctx2, {
+    type: "doughnut",
+    data: { labels: Object.keys(porCat), datasets: [{ data: Object.values(porCat), backgroundColor: ["#f44336","#ff9800","#2196f3","#9c27b0"] }] },
+    options: { responsive:true, maintainAspectRatio:false }
+  });
 
-      const meses = {};
-      movimientos.forEach(m => {
-        const [anio, mes] = m.fecha.split("-").slice(0,2);
-        const clave = `${mes}-${anio}`;
-        if (!meses[clave]) meses[clave] = { ingresos: 0, gastos: 0 };
-        if (m.tipo === "ingreso") meses[clave].ingresos += m.importe;
-        else meses[clave].gastos += m.importe;
-      });
+  // Mensual: ingresos vs gastos por mes
+  const meses = {};
+  movimientos.forEach(m=>{
+    const [anio, mes] = m.fecha.split("-").slice(0,2);
+    const k = `${mes}-${anio}`;
+    if(!meses[k]) meses[k] = { ingresos:0, gastos:0 };
+    if(m.tipo === "ingreso") meses[k].ingresos += m.importe;
+    else meses[k].gastos += m.importe;
+  });
 
-      chart3 = new Chart(ctx3, {
-        type: "bar",
-        data: {
-          labels: Object.keys(meses),
-          datasets: [
-            { label: "Ingresos", data: Object.values(meses).map(m => m.ingresos), backgroundColor: "#4caf50" },
-            { label: "Gastos", data: Object.values(meses).map(m => m.gastos), backgroundColor: "#f44336" }
-          ]
-        }
-      });
-    }
+  const keysMeses = Object.keys(meses).sort((a,b)=>{
+    const [ma,aa] = a.split("-"), [mb,ab] = b.split("-");
+    return new Date(`${aa}-${ma}-01`) - new Date(`${ab}-${mb}-01`);
+  });
 
-    toggleCategoria();
-  </script>
+  chart3 = new Chart(ctx3, {
+    type: "bar",
+    data: {
+      labels: keysMeses,
+      datasets: [
+        { label: "Ingresos", data: keysMeses.map(k=>meses[k].ingresos), backgroundColor: "#4caf50" },
+        { label: "Gastos", data: keysMeses.map(k=>meses[k].gastos), backgroundColor: "#f44336" }
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false }
+  });
+}
+
+/* ===============================
+   Orden toggle en cabecera Fecha
+   =============================== */
+function toggleOrden(){
+  ordenAsc = !ordenAsc;
+  renderMovimientos();
+}
+
+/* ===============================
+   Inicialización
+   =============================== */
+document.addEventListener("DOMContentLoaded", ()=>{
+  abrirBD();
+  // ajustar visibilidad del header categoria al cargar
+  toggleCategoria();
+  // Si el viewport es ancho, mostrar resumen (ya aparece)
+  // No hacemos borrado de datos: persistent DB mantiene lo existente.
+});
+</script>
 </body>
 </html>
