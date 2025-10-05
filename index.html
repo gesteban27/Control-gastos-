@@ -12,7 +12,7 @@
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background: #f4f4f4; cursor: pointer; }
-    td.importe-col { text-align: right; }
+    td.importe-col { text-align: right; font-weight: bold; }
     th.accion-col, td.accion-col { width: 4rem; text-align: center; }
     .delete-btn { background: red; color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
     .formulario table td { padding: 6px; }
@@ -22,6 +22,10 @@
     /* 🎨 Colores de filas */
     .fila-ingreso { background-color: #e6f4ea; } /* verde suave */
     .fila-gasto { background-color: #fdecea; }   /* rojo suave */
+
+    /* 🎨 Colores de importes */
+    .importe-ingreso { color: #1a7f37; }  /* verde fuerte */
+    .importe-gasto { color: #b42318; }    /* rojo fuerte */
   </style>
 </head>
 <body>
@@ -83,26 +87,4 @@
     </table>
   </div>
 
-  <!-- 🔹 Movimientos -->
-  <h2>Movimientos</h2>
-  <table>
-    <thead>
-      <tr>
-        <th onclick="cambiarOrden()">Fecha ⬍</th>
-        <th>Tipo</th>
-        <th>Categoría</th>
-        <th>Importe</th>
-        <th class="accion-col">Acción</th>
-      </tr>
-    </thead>
-    <tbody id="tablaMovimientos"></tbody>
-  </table>
-
-  <script>
-    let movimientos = JSON.parse(localStorage.getItem("movimientos")) || [];
-    let ordenAsc = false;
-
-    function toggleCategoria() {
-      const tipo = document.getElementById("tipo").value;
-      const categoriaCell = document.getElementById("categoriaCell");
-      const categoriaHeader = document.getEle
+  <!-- 🔹 Movimientos -
