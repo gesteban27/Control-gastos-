@@ -9,17 +9,19 @@
   <style>
     :root{
       --color-principal: #1976d2;
-      --color-fondo: #f4f6f8;
+      --bg: #f4f6f8;
       --verde: #4caf50;
       --rojo: #f44336;
+      --card: #ffffff;
+      --muted: #666666;
     }
 
-    /* ===== Body & container ===== */
+    /* ===== body & container ===== */
     body{
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
       margin: 0;
       padding: 1rem;
-      background: var(--color-fondo);
+      background: var(--bg);
       color: #222;
       min-height: 100vh;
       display: flex;
@@ -30,7 +32,7 @@
     .container{
       width: 100%;
       max-width: 420px; /* móvil por defecto */
-      background: white;
+      background: var(--card);
       border-radius: 16px;
       box-shadow: 0 6px 18px rgba(17,24,39,0.08);
       overflow: hidden;
@@ -38,20 +40,22 @@
       transition: max-width 0.28s ease, padding 0.28s ease;
     }
 
-    /* ===== Header ===== */
     header{
       background: linear-gradient(90deg, var(--color-principal), #2196f3);
       color: white;
       padding: 14px 16px;
     }
-    header h1{
-      margin: 0;
-      font-size: 1.15rem;
-      text-align: center;
-      font-weight: 600;
-    }
+    header h1{ margin: 0; font-size: 1.15rem; text-align: center; font-weight: 600; }
 
     main{ padding: 16px; }
+
+    /* ===== layout desktop ===== */
+    @media (min-width: 768px){
+      .container{ max-width: 980px; padding: 0; }
+      main{ display: grid; grid-template-columns: 1fr 360px; gap: 18px; padding: 16px; }
+      .left-col{ padding-right: 8px; }
+      .right-col{ padding-left: 8px; }
+    }
 
     /* ===== Resumen tarjetas ===== */
     .resumen {
@@ -70,10 +74,10 @@
       text-align: center;
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
-    .resumen-card h3{ margin: 0; font-size: 0.9rem; color: #666; }
+    .resumen-card h3{ margin: 0; font-size: 0.9rem; color: var(--muted); }
     .resumen-card p{ margin: 6px 0 0; font-size: 1.15rem; font-weight: 700; }
 
-    /* ===== Formulario tabulado ===== */
+    /* ===== tablas ===== */
     .form-table, .mov-table {
       width: 100%;
       border-collapse: collapse;
@@ -86,9 +90,9 @@
       padding: 8px;
       text-align: center;
       border-bottom: 1px solid #eee;
+      font-size: 0.95rem;
     }
-    .form-table thead th{ background: #fafafa; font-weight: 600; color: #444; }
-    .mov-table thead th{ background: #fafafa; font-weight: 600; color: #444; }
+    .form-table thead th, .mov-table thead th{ background: #fafafa; font-weight: 600; color: #444; cursor: default; }
 
     .form-row input, .form-row select {
       width: 100%;
@@ -113,66 +117,54 @@
 
     .accion-col{ width: 4rem; }
 
-    /* ===== Colores filas/importe ===== */
-    tr.ingreso { background-color: rgba(76,175,80,0.08); }
-    tr.gasto { background-color: rgba(244,67,54,0.06); }
+    /* ===== filas colores & importe ===== */
+    tr.ingreso { background-color: rgba(76,175,80,0.06); }
+    tr.gasto   { background-color: rgba(244,67,54,0.06); }
 
     .importe-col { text-align: right; font-weight: 700; }
     .importe-ingreso { color: var(--verde); }
     .importe-gasto { color: var(--rojo); }
 
-    /* ===== Botones inferiores ===== */
-    .controls { display: flex; gap: 8px; margin-top: 12px; justify-content: center; }
-    .controls button { flex: 1; }
-
-    /* ===== Gráficos ===== */
-    #graficosSection{ display: none; padding: 8px 0 20px; }
-    canvas{ width: 100% !important; height: 260px !important; border-radius: 8px; }
-
-    /* ===== Saldo colores ===== */
-    #saldo { font-weight: 800; font-size: 1.1rem; }
-    #saldo.verde { color: var(--verde); }
-    #saldo.rojo { color: var(--rojo); }
-    #saldo.negro { color: #222; }
-
-    /* ===== Responsive: ampliar en escritorio/tablet ===== */
-    @media (min-width: 768px){
-      .container{ max-width: 980px; padding: 12px; }
-      main{ display: grid; grid-template-columns: 1fr 420px; gap: 18px; }
-      /* izquierda: movimientos + formulario, derecha: resumen + controles */
-      .left-col{ display: flex; flex-direction: column; gap: 12px; }
-      .right-col{ display:flex; flex-direction: column; gap: 12px; align-items: stretch; }
-      /* mover resumen into right */
-      .resumen{ flex-direction: column; gap: 12px; align-items: stretch; }
-      canvas{ height: 320px !important; }
+    /* ===== controls & nav ===== */
+    .controls { display:flex; gap:8px; margin-top:12px; justify-content:center; }
+    .bottom-nav {
+      display:flex;
+      gap:8px;
+      padding:10px;
+      border-top:1px solid #eee;
+      background:#fff;
+      justify-content:space-around;
+      position: sticky;
+      bottom: 0;
     }
+    .nav-btn { background: none; border: none; padding:6px 10px; cursor:pointer; font-weight:600; color:#333; display:flex; flex-direction:column; align-items:center; gap:4px; }
+    .nav-btn.active { color: var(--color-principal); }
 
-    @media (max-width: 420px){
-      .form-table th, .form-table td, .mov-table th, .mov-table td{ padding: 6px; font-size: 0.92rem; }
-      canvas{ height: 220px !important; }
+    /* ===== graficos & resumen section ===== */
+    #graficosSection, #resumenSection { display: none; }
+    canvas{ width:100% !important; height:240px !important; border-radius:8px; }
+
+    /* ===== responsive tweaks ===== */
+    @media (max-width:420px){
+      .form-table th, .form-table td, .mov-table th, .mov-table td{ padding:6px; font-size:0.9rem; }
+      canvas{ height:200px !important; }
     }
   </style>
 </head>
 <body>
-  <div class="container" role="application">
+  <div class="container" role="application" aria-label="App Control de Gastos">
     <header><h1>Control de Gastos</h1></header>
 
     <main>
-      <!-- Left column: formulario + movimientos -->
-      <div class="left-col" style="padding: 0 16px 16px 16px;">
-        <!-- Resumen (en móviles se muestra arriba; en escritorio se reubica) -->
-        <div class="resumen" style="display:none;" id="resumenHidden"></div>
-
-        <!-- Formulario -->
-        <div>
-          <table class="form-table" aria-label="Formulario de entrada">
+      <!-- LEFT column -->
+      <div class="left-col">
+        <!-- Home section -->
+        <section id="homeSection" aria-label="Inicio">
+          <!-- Form -->
+          <table class="form-table" aria-label="Formulario">
             <thead>
               <tr>
-                <th>Fecha</th>
-                <th>Tipo</th>
-                <th id="categoriaHeader">Categoría</th>
-                <th>Importe (€)</th>
-                <th>Acción</th>
+                <th>Fecha</th><th>Tipo</th><th id="categoriaHeader">Categoría</th><th>Importe (€)</th><th>Acción</th>
               </tr>
             </thead>
             <tbody>
@@ -197,11 +189,9 @@
               </tr>
             </tbody>
           </table>
-        </div>
 
-        <!-- Movimientos -->
-        <div>
-          <table class="mov-table" id="tablaMovimientos" aria-label="Movimientos">
+          <!-- Movements table -->
+          <table class="mov-table" id="tablaMovimientos" aria-label="Lista de movimientos">
             <thead>
               <tr>
                 <th onclick="toggleOrden()">Fecha ⬍</th>
@@ -213,17 +203,18 @@
             </thead>
             <tbody></tbody>
           </table>
-        </div>
 
-        <!-- Botones -->
-        <div class="controls" style="padding: 0 6px;">
-          <button onclick="mostrarGraficos()" class="btn-primary">📊 Ver Gráficos</button>
-        </div>
+          <div class="controls">
+            <button class="btn-primary" onclick="showTab('graficos')">📊 Gráficos</button>
+            <button class="btn-primary" onclick="showTab('resumen')">📅 Resumen</button>
+          </div>
+        </section>
       </div>
 
-      <!-- Right column: resumen + gráficos (resumen también visible en mobile above) -->
-      <div class="right-col" style="padding: 0 16px 16px 16px;">
-        <div class="resumen" id="resumenCards" aria-hidden="false" style="display:block;">
+      <!-- RIGHT column -->
+      <div class="right-col">
+        <!-- Cards resumen (visible en desktop and mobile) -->
+        <div class="resumen" id="resumenCards" aria-hidden="false">
           <div class="resumen-card">
             <h3>Ingresos</h3>
             <p id="totalIngresos">0.00</p>
@@ -238,29 +229,66 @@
           </div>
         </div>
 
-        <!-- sección de gráficos (interna) -->
-        <div id="graficosSection" aria-hidden="true" style="display:none;">
-          <div style="margin-top:8px; text-align:center;">
-            <button class="btn-primary" onclick="volverPrincipal()">🔙 Volver</button>
+        <!-- Gráficos (pestaña) -->
+        <div id="graficosSection" aria-hidden="true">
+          <div style="text-align:center; margin:8px 0;">
+            <button class="btn-primary" onclick="showTab('home')">🔙 Volver</button>
           </div>
-
-          <h3 style="margin:12px 0 6px;">Evolución del saldo</h3>
+          <h4 style="margin:10px 0 6px;">Evolución del saldo</h4>
           <canvas id="graficoEvolucion"></canvas>
 
-          <h3 style="margin:12px 0 6px;">Reparto por categoría (gastos)</h3>
+          <h4 style="margin:10px 0 6px;">Reparto por categoría (gastos)</h4>
           <canvas id="graficoCategorias"></canvas>
 
-          <h3 style="margin:12px 0 6px;">Ingresos vs Gastos por mes</h3>
+          <h4 style="margin:10px 0 6px;">Ingresos vs Gastos por mes</h4>
           <canvas id="graficoMensual"></canvas>
+        </div>
+
+        <!-- Resumen mensual (pestaña) -->
+        <div id="resumenSection" aria-hidden="true">
+          <div style="text-align:center; margin:8px 0;">
+            <button class="btn-primary" onclick="showTab('home')">🔙 Volver</button>
+          </div>
+          <h3 id="resumenMesTitulo" style="margin-top:8px;">Resumen</h3>
+
+          <div style="display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:6px;">
+            <div style="min-width:140px; text-align:center; background:#fff; padding:10px; border-radius:10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+              <div style="font-size:0.9rem; color:var(--muted)">Ingresos</div>
+              <div id="res_ingresos" style="font-weight:800; font-size:1.1rem">0.00 €</div>
+            </div>
+            <div style="min-width:140px; text-align:center; background:#fff; padding:10px; border-radius:10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+              <div style="font-size:0.9rem; color:var(--muted)">Gastos</div>
+              <div id="res_gastos" style="font-weight:800; font-size:1.1rem">0.00 €</div>
+            </div>
+            <div style="min-width:140px; text-align:center; background:#fff; padding:10px; border-radius:10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+              <div style="font-size:0.9rem; color:var(--muted)">Saldo</div>
+              <div id="res_saldo" style="font-weight:800; font-size:1.1rem">0.00 €</div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <h4 style="margin:8px 0 6px;">Distribución de gastos por categoría</h4>
+            <canvas id="res_doughnut"></canvas>
+          </div>
+
+          <div style="margin-top:12px;">
+            <h4 style="margin:8px 0 6px;">Ingresos vs Gastos (mes)</h4>
+            <canvas id="res_bar"></canvas>
+          </div>
         </div>
       </div>
     </main>
+
+    <!-- bottom nav (visible en móvil y escritorio) -->
+    <nav class="bottom-nav" role="navigation" aria-label="Navegación principal">
+      <button class="nav-btn active" id="nav-home" onclick="showTab('home')">🏠<span style="font-size:0.72rem">Inicio</span></button>
+      <button class="nav-btn" id="nav-graficos" onclick="showTab('graficos')">📊<span style="font-size:0.72rem">Gráficos</span></button>
+      <button class="nav-btn" id="nav-resumen" onclick="showTab('resumen')">📅<span style="font-size:0.72rem">Resumen</span></button>
+    </nav>
   </div>
 
 <script>
-/* ===============================
-   IndexedDB - almacenamiento
-   =============================== */
+/* ========== IndexedDB ========== */
 let db;
 let movimientos = [];
 let ordenAsc = false;
@@ -279,8 +307,8 @@ function abrirBD() {
     cargarMovimientos();
   };
   req.onerror = (e) => {
-    console.error("Error abriendo IndexedDB", e);
-    alert("No se pudo acceder al almacenamiento local.");
+    console.error("Error IndexedDB", e);
+    alert("Error accediendo al almacenamiento local.");
   };
 }
 
@@ -289,7 +317,7 @@ function agregarRegistroDB(obj) {
   const store = tx.objectStore("movimientos");
   store.add(obj);
   tx.oncomplete = () => cargarMovimientos();
-  tx.onerror = (e) => console.error("Error al añadir", e);
+  tx.onerror = e => console.error("add error", e);
 }
 
 function borrarRegistroDB(id) {
@@ -297,7 +325,7 @@ function borrarRegistroDB(id) {
   const store = tx.objectStore("movimientos");
   store.delete(Number(id));
   tx.oncomplete = () => cargarMovimientos();
-  tx.onerror = (e) => console.error("Error al eliminar", e);
+  tx.onerror = e => console.error("delete err", e);
 }
 
 function cargarMovimientos() {
@@ -306,18 +334,17 @@ function cargarMovimientos() {
   const req = store.getAll();
   req.onsuccess = () => {
     movimientos = req.result || [];
-    // ordenar por fecha asc por defecto
     movimientos.sort((a,b)=> new Date(a.fecha) - new Date(b.fecha));
     renderMovimientos();
     actualizarTotales();
+    // si estás en gráficas/resumen y ya abiertas, regenerarlas
+    if(document.getElementById('graficosSection').style.display === 'block') generarGraficos();
+    if(document.getElementById('resumenSection').style.display === 'block') generarResumen();
   };
-  req.onerror = (e) => console.error("Error al leer movs", e);
+  req.onerror = e => console.error("getAll err", e);
 }
 
-/* ===============================
-   UI / lógica de la app
-   =============================== */
-
+/* ========== UI / lógica ========== */
 const tbody = document.querySelector("#tablaMovimientos tbody");
 const elTotalIngresos = document.getElementById("totalIngresos");
 const elTotalGastos = document.getElementById("totalGastos");
@@ -343,23 +370,20 @@ function agregarMovimiento(){
   const importeRaw = document.getElementById("importe").value;
   const importe = parseFloat(importeRaw);
   if(!fechaRaw || !importeRaw || isNaN(importe)){
-    return alert("Por favor completa fecha y importe válidos.");
+    return alert("Por favor completa fecha y un importe válido.");
   }
-  // guardamos la fecha tal cual (yyyy-mm-dd)
   agregarRegistroDB({ fecha: fechaRaw, tipo, categoria, importe });
-  // limpiar importe
   document.getElementById("importe").value = "";
 }
 
 function renderMovimientos(){
   tbody.innerHTML = "";
-  // ordenar según ordenAsc (por defecto asc)
   const copia = [...movimientos].sort((a,b)=>{
     const da = new Date(a.fecha), db = new Date(b.fecha);
     return ordenAsc ? da - db : db - da;
   });
 
-  copia.forEach((m)=>{
+  copia.forEach(m=>{
     const tr = document.createElement("tr");
     tr.classList.add(m.tipo === "ingreso" ? "ingreso" : "gasto");
     const fechaDisplay = m.fecha.split("-").reverse().join("-");
@@ -391,24 +415,43 @@ function actualizarTotales(){
   elSaldo.className = balance > 0 ? "verde" : balance < 0 ? "rojo" : "negro";
 }
 
-/* ===============================
-   Gráficos (Chart.js)
-   =============================== */
+/* ========== Navegación de pestañas ========== */
+function clearActiveNav(){
+  document.getElementById("nav-home").classList.remove("active");
+  document.getElementById("nav-graficos").classList.remove("active");
+  document.getElementById("nav-resumen").classList.remove("active");
+}
+
+function showTab(tab){
+  // esconder todo
+  document.getElementById("homeSection").style.display = 'none';
+  document.getElementById("graficosSection").style.display = 'none';
+  document.getElementById("resumenSection").style.display = 'none';
+  document.getElementById("graficosSection").setAttribute('aria-hidden','true');
+  document.getElementById("resumenSection").setAttribute('aria-hidden','true');
+
+  clearActiveNav();
+
+  if(tab === 'home'){
+    document.getElementById("homeSection").style.display = 'block';
+    document.getElementById("nav-home").classList.add("active");
+  } else if(tab === 'graficos'){
+    document.getElementById("graficosSection").style.display = 'block';
+    document.getElementById("graficosSection").setAttribute('aria-hidden','false');
+    document.getElementById("nav-graficos").classList.add("active");
+    generarGraficos();
+  } else if(tab === 'resumen'){
+    document.getElementById("resumenSection").style.display = 'block';
+    document.getElementById("resumenSection").setAttribute('aria-hidden','false');
+    document.getElementById("nav-resumen").classList.add("active");
+    generarResumen();
+  }
+  // scroll to top of container
+  document.querySelector('.container').scrollIntoView({behavior:'smooth'});
+}
+
+/* ========== Gráficos (Chart.js) ========== */
 let chart1, chart2, chart3;
-function mostrarGraficos(){
-  document.getElementById("graficosSection").style.display = "block";
-  // en layout de escritorio mostramos en right-col; en móvil navegamos (secciones ya dentro)
-  generarGraficos();
-  // si está en diseño con main grid, no esconder main; aquí preferimos que muestre la sección de graficos
-  // En nuestra estructura, está en right-col; aseguramos scroll hasta allí en móviles
-  document.getElementById("graficosSection").scrollIntoView({behavior:"smooth"});
-}
-
-function volverPrincipal(){
-  // simplemente hacemos scroll arriba y destruyimos gráficos si hay
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
 function generarGraficos(){
   const ctx1 = document.getElementById("graficoEvolucion").getContext("2d");
   const ctx2 = document.getElementById("graficoCategorias").getContext("2d");
@@ -432,16 +475,17 @@ function generarGraficos(){
       labels: fechas.map(f=>f.split("-").reverse().join("-")),
       datasets: [{ label: "Saldo acumulado (€)", data: dataEvol, borderColor: "#1976d2", backgroundColor: "rgba(25,118,210,0.18)", fill:true }]
     },
-    options: { responsive: true, maintainAspectRatio: false }
+    options: { responsive:true, maintainAspectRatio:false }
   });
 
   // Por categoría (solo gastos)
   const porCat = {};
   movimientos.filter(m=> m.tipo === "gasto").forEach(m => porCat[m.categoria] = (porCat[m.categoria] || 0) + m.importe);
+
   chart2 = new Chart(ctx2, {
     type: "doughnut",
-    data: { labels: Object.keys(porCat), datasets: [{ data: Object.values(porCat), backgroundColor: ["#f44336","#ff9800","#2196f3","#9c27b0"] }] },
-    options: { responsive:true, maintainAspectRatio:false }
+    data: { labels: Object.keys(porCat), datasets: [{ data: Object.values(porCat), backgroundColor: ["#f44336","#ff9800","#2196f3","#9c27b0","#4caf50"] }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}} }
   });
 
   // Mensual: ingresos vs gastos por mes
@@ -472,23 +516,75 @@ function generarGraficos(){
   });
 }
 
-/* ===============================
-   Orden toggle en cabecera Fecha
-   =============================== */
+/* ========== Resumen mensual (pestaña) ========== */
+let resChartDoughnut, resChartBar;
+function generarResumen(){
+  // calcular mes actual
+  const hoy = new Date();
+  const mes = String(hoy.getMonth()+1).padStart(2,'0');
+  const anio = String(hoy.getFullYear());
+  const mesClave = `${anio}-${mes}`; // formato yyyy-mm
+
+  // filtrar movimientos del mes actual
+  const movMes = movimientos.filter(m => m.fecha.startsWith(mesClave));
+
+  const ingresos = movMes.filter(m => m.tipo === 'ingreso').reduce((s,m)=> s + m.importe, 0);
+  const gastos = movMes.filter(m => m.tipo === 'gasto').reduce((s,m)=> s + m.importe, 0);
+  const balance = ingresos - gastos;
+
+  document.getElementById('resumenMesTitulo').textContent = `${obtenerNombreMes(hoy.getMonth())} ${anio}`;
+  document.getElementById('res_ingresos').textContent = ingresos.toFixed(2) + ' €';
+  document.getElementById('res_gastos').textContent = gastos.toFixed(2) + ' €';
+  const elResSaldo = document.getElementById('res_saldo');
+  elResSaldo.textContent = balance.toFixed(2) + ' €';
+  elResSaldo.style.color = balance > 0 ? 'var(--verde)' : balance < 0 ? 'var(--rojo)' : '#222';
+
+  // doughnut por categoría (gastos)
+  const porCat = {};
+  movMes.filter(m => m.tipo === 'gasto').forEach(m => porCat[m.categoria] = (porCat[m.categoria] || 0) + m.importe);
+
+  const ctxD = document.getElementById('res_doughnut').getContext('2d');
+  if(resChartDoughnut) resChartDoughnut.destroy();
+  resChartDoughnut = new Chart(ctxD, {
+    type: 'doughnut',
+    data: { labels: Object.keys(porCat), datasets: [{ data: Object.values(porCat), backgroundColor: ["#f44336","#ff9800","#2196f3","#9c27b0","#4caf50"] }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}} }
+  });
+
+  // barras: ingresos vs gastos (solo totals del mes)
+  const ctxB = document.getElementById('res_bar').getContext('2d');
+  if(resChartBar) resChartBar.destroy();
+  resChartBar = new Chart(ctxB, {
+    type: 'bar',
+    data: {
+      labels: ['Mes actual'],
+      datasets: [
+        { label:'Ingresos', data:[ingresos], backgroundColor: '#4caf50' },
+        { label:'Gastos', data:[gastos], backgroundColor: '#f44336' }
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false }
+  });
+}
+
+/* ========== Orden toggle ========== */
 function toggleOrden(){
   ordenAsc = !ordenAsc;
   renderMovimientos();
 }
 
-/* ===============================
-   Inicialización
-   =============================== */
-document.addEventListener("DOMContentLoaded", ()=>{
+/* ========== helper mes nombre ========== */
+function obtenerNombreMes(idx){
+  const nombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  return nombres[idx] || '';
+}
+
+/* ========== init ========== */
+document.addEventListener('DOMContentLoaded', () => {
   abrirBD();
-  // ajustar visibilidad del header categoria al cargar
   toggleCategoria();
-  // Si el viewport es ancho, mostrar resumen (ya aparece)
-  // No hacemos borrado de datos: persistent DB mantiene lo existente.
+  // mostrar home por defecto
+  showTab('home');
 });
 </script>
 </body>
