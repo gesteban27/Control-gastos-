@@ -5,23 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Control de Gastos</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <meta name="theme-color" content="#1976d2">
+  <meta name="theme-color" content="#ffffff">
   <style>
     :root{
-      --accent: #1976d2;
-      --bg: #f6f7f9;
+      --accent: #1976d2; /* solo para nav activo y highlights mínimos */
+      --bg: #ffffff;     /* fondo general blanco pedido */
       --card: #ffffff;
       --muted: #71777f;
       --verde: #2e944b;
       --rojo: #d32f2f;
       --radius: 12px;
+      --border: #e8e9eb;
+      --control-bg: #fbfbfb;
+      --btn-border: #d0d3d7;
     }
 
-    /* ===== page layout ===== */
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
       background: var(--bg);
       color:#222;
       display:flex;
@@ -35,59 +37,55 @@
       max-width:980px;
       background: var(--card);
       border-radius: var(--radius);
-      box-shadow: 0 10px 30px rgba(12,20,30,0.08);
+      box-shadow: 0 8px 20px rgba(10,20,30,0.04);
       overflow:hidden;
       display:flex;
       flex-direction:column;
     }
 
     header{
-      background: linear-gradient(90deg,var(--accent),#2196f3);
-      color:white;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+      color:#111;
       padding:14px 18px;
+      border-bottom: 1px solid var(--border);
     }
     header h1{ margin:0; font-size:1.15rem; text-align:center; font-weight:600; }
 
     main{ display:grid; grid-template-columns: 1fr 360px; gap:18px; padding:18px; }
-    /* responsive fallback: single col */
     @media(max-width:900px){
       main{ grid-template-columns: 1fr; padding:14px; }
     }
 
-    /* ===== left column (form + table) ===== */
-    .left {
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-    }
+    .left { display:flex; flex-direction:column; gap:12px; }
 
     .card {
       background:var(--card);
       border-radius:10px;
       padding:10px;
-      box-shadow: 0 2px 6px rgba(10,20,30,0.03);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+      border: 1px solid var(--border);
     }
 
-    /* form table */
     .form-table, .mov-table { width:100%; border-collapse:collapse; }
     .form-table th, .form-table td, .mov-table th, .mov-table td {
-      padding:8px; text-align:center; border-bottom:1px solid #f0f0f0; font-size:0.95rem;
+      padding:8px; text-align:center; border-bottom:1px solid var(--border); font-size:0.95rem;
     }
-    .form-table thead th, .mov-table thead th { background:#fbfbfb; font-weight:700; color:#444; }
+    .form-table thead th, .mov-table thead th { background: var(--control-bg); font-weight:700; color:#444; }
+
     .form-row input, .form-row select {
-      width:100%; padding:7px; border-radius:8px; border:1px solid #e0e0e0; font-size:0.95rem;
+      width:100%; padding:8px; border-radius:8px; border:1px solid var(--btn-border); font-size:0.95rem;
+      background: #fff;
     }
 
-    .btn {
-      background:var(--accent); color:white; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; font-weight:700;
-    }
-    .btn:active{ transform:translateY(1px) }
+    /* Botones discretos (sin azul fuerte) */
+    .btn { background:transparent; color:#222; border:1px solid var(--btn-border); padding:8px 10px; border-radius:8px; cursor:pointer; font-weight:700; }
+    .btn:active{ transform:translateY(1px); }
+    .btn.ghost { background:#fff; } /* look neutral */
 
     .mov-table thead th[role="sortable"]{ cursor:pointer; user-select:none; }
 
-    /* row colors */
-    tr.ingreso { background: rgba(46,148,75,0.06); }
-    tr.gasto { background: rgba(211,47,47,0.06); }
+    tr.ingreso { background: rgba(46,148,75,0.04); }
+    tr.gasto   { background: rgba(211,47,47,0.04); }
 
     .importe-col { text-align:right; font-weight:700; }
     .importe-ingreso { color: var(--verde); }
@@ -95,41 +93,37 @@
 
     .action-col { width:56px; }
 
-    /* ===== right column (cards and panels) ===== */
     .right { display:flex; flex-direction:column; gap:12px; }
 
     .summary-cards { display:flex; gap:10px; flex-direction:column; }
-    @media(min-width:900px){
-      .summary-cards { flex-direction:column; }
-    }
-    .summary-card { background:var(--card); border-radius:10px; padding:12px; text-align:center; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .summary-card { background:var(--card); border-radius:10px; padding:12px; text-align:center; box-shadow: 0 1px 4px rgba(0,0,0,0.02); border:1px solid var(--border); }
     .summary-card h4{ margin:0; color:var(--muted); font-weight:600; font-size:0.9rem; }
     .summary-card p{ margin:8px 0 0; font-weight:800; font-size:1.15rem; }
 
-    /* charts container - side by side on wide screens */
     .charts-row { display:flex; gap:12px; flex-direction:column; }
     @media(min-width:900px){
       .charts-row { flex-direction:row; }
       .charts-row .chart-card { flex:1; }
     }
-    .chart-card { background:var(--card); padding:10px; border-radius:10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .chart-card { background:var(--card); padding:10px; border-radius:10px; box-shadow: 0 1px 4px rgba(0,0,0,0.02); border:1px solid var(--border); }
 
-    canvas{ width:100% !important; height:240px !important; border-radius:8px; display:block; }
+    canvas{ width:100% !important; height:240px !important; border-radius:8px !important; display:block; }
 
-    /* tabs / navigation bottom */
     .bottom-nav {
-      display:flex; gap:6px; justify-content:space-around; padding:10px; border-top:1px solid #eee; background:var(--card);
+      display:flex; gap:6px; justify-content:space-around; padding:10px; border-top:1px solid var(--border); background:var(--card);
+      position: sticky; bottom: 0;
     }
     .tab-btn { background:none; border:none; cursor:pointer; padding:8px 10px; font-weight:700; color:#444; display:flex; flex-direction:column; align-items:center; gap:4px; }
     .tab-btn.active{ color:var(--accent); }
 
-    /* small helpers */
     .muted{ color:var(--muted); font-size:0.9rem; }
     .center{ text-align:center; }
-    .controls { display:flex; gap:8px; margin-top:8px; }
+    .controls { display:flex; gap:8px; margin-top:8px; justify-content:center; }
 
-    /* month picker width */
-    .small-input{ max-width:220px; }
+    .small-input{ max-width:220px; padding:8px; border-radius:8px; border:1px solid var(--btn-border); background:#fff; }
+
+    /* remove outline on buttons but keep focus visible */
+    button:focus { outline: 2px solid rgba(25,118,210,0.18); outline-offset:2px; }
 
   </style>
 </head>
@@ -138,7 +132,7 @@
     <header><h1>Control de Gastos</h1></header>
 
     <main>
-      <!-- LEFT: Home (form + table) -->
+      <!-- LEFT -->
       <section class="left">
         <div class="card" aria-labelledby="form-title">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -170,7 +164,7 @@
                   </select>
                 </td>
                 <td><input id="importe" type="number" step="0.01" /></td>
-                <td><button class="btn" onclick="agregarMovimiento()">➕</button></td>
+                <td><button class="btn ghost" onclick="agregarMovimiento()">➕ Añadir</button></td>
               </tr>
             </tbody>
           </table>
@@ -202,9 +196,8 @@
         </div>
       </section>
 
-      <!-- RIGHT: summary / graphs / resumen panels -->
+      <!-- RIGHT -->
       <aside class="right">
-        <!-- always-visible summary cards -->
         <div class="summary-cards">
           <div class="summary-card">
             <h4>Ingresos</h4>
@@ -220,7 +213,7 @@
           </div>
         </div>
 
-        <!-- GRÁFICOS PESTAÑA -->
+        <!-- Gráficos panel (hidden by default) -->
         <div id="graficosPanel" style="display:none;">
           <div style="display:flex; gap:8px; align-items:center; justify-content:space-between; margin-bottom:8px;">
             <div style="display:flex; gap:8px; align-items:center;">
@@ -249,7 +242,7 @@
           </div>
         </div>
 
-        <!-- RESUMEN PESTAÑA -->
+        <!-- Resumen panel -->
         <div id="resumenPanel" style="display:none;">
           <div style="display:flex; gap:8px; align-items:center; justify-content:space-between; margin-bottom:8px;">
             <div style="display:flex; gap:8px; align-items:center;">
@@ -299,12 +292,11 @@
   </div>
 
 <script>
-/* ===== IndexedDB setup ===== */
+/* ===== IndexedDB ===== */
 let db;
-let movimientos = []; // cached array
+let movimientos = [];
 let ordenAsc = false;
 
-// open DB
 function abrirDB(){
   const req = indexedDB.open('GastosDB_v3', 1);
   req.onupgradeneeded = e => {
@@ -320,7 +312,7 @@ function abrirDB(){
   };
   req.onerror = e => {
     console.error('IndexedDB error', e);
-    alert('Error al acceder al almacenamiento local.');
+    alert('Error accediendo al almacenamiento local.');
   };
 }
 
@@ -346,7 +338,6 @@ function cargarTodos(){
     movimientos.sort((a,b)=> new Date(a.fecha) - new Date(b.fecha));
     renderTable();
     actualizarResumenCards();
-    // if graphs/resumen open -> regenerate
     if(document.getElementById('graficosPanel').style.display === 'block') generarGraficos();
     if(document.getElementById('resumenPanel').style.display === 'block') generarResumen();
   };
@@ -392,7 +383,7 @@ function renderTable(){
       <td>${m.tipo}</td>
       <td>${m.categoria || ''}</td>
       <td class="importe-col ${impClass}">${m.tipo==='ingreso'?'+':'-'}${m.importe.toFixed(2)} €</td>
-      <td class="action-col"><button onclick="confirmBorrar(${m.id})">❌</button></td>
+      <td class="action-col"><button class="btn" onclick="confirmBorrar(${m.id})">❌</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -402,7 +393,7 @@ function confirmBorrar(id){
   if(confirm('¿Eliminar este movimiento?')) borrarDB(id);
 }
 
-/* ===== Totals top-right ===== */
+/* ===== Totals ===== */
 function actualizarResumenCards(){
   const ingresos = movimientos.filter(m=>m.tipo==='ingreso').reduce((s,m)=>s+m.importe,0);
   const gastos = movimientos.filter(m=>m.tipo==='gasto').reduce((s,m)=>s+m.importe,0);
@@ -415,26 +406,16 @@ function actualizarResumenCards(){
 }
 
 /* ===== Tabs navigation ===== */
-function resetNav(){
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-}
-function hideAllPanels(){
-  document.getElementById('graficosPanel').style.display='none';
-  document.getElementById('resumenPanel').style.display='none';
-  // home is left column content; keep visible by default
-}
+function resetNav(){ document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); }
+function hideAllPanels(){ document.getElementById('graficosPanel').style.display='none'; document.getElementById('resumenPanel').style.display='none'; }
 function showTab(tab){
-  // default: show home content (left column always visible)
   resetNav(); hideAllPanels();
   if(tab === 'home'){
     document.getElementById('nav-home').classList.add('active');
-    // nothing else (home is main left visible)
-    // scroll to top of app
     document.querySelector('.app').scrollIntoView({behavior:'smooth'});
   } else if(tab === 'graficos'){
     document.getElementById('nav-graphs').classList.add('active');
     document.getElementById('graficosPanel').style.display='block';
-    // set default month to current if empty
     if(!document.getElementById('grafMes').value) document.getElementById('grafMes').value = obtenerMesActual();
     generarGraficos();
     document.querySelector('.app').scrollIntoView({behavior:'smooth'});
@@ -447,23 +428,16 @@ function showTab(tab){
   }
 }
 
-/* ===== Charts (graphs) ===== */
+/* ===== Charts ===== */
 let chartCat, chartBar, chartGrafBar;
-
 function generarGraficos(){
-  const month = document.getElementById('grafMes').value; // 'YYYY-MM' or ''
-  const tipo = document.getElementById('grafTipo').value; // todos/ingreso/gasto
-
-  // Filtrar según month & tipo
+  const month = document.getElementById('grafMes').value;
+  const tipo = document.getElementById('grafTipo').value;
   let fil = [...movimientos];
   if(month) fil = fil.filter(m=> m.fecha.startsWith(month));
   if(tipo !== 'todos') fil = fil.filter(m=> m.tipo === tipo);
-
-  // por categoria (gastos)
   const porCat = {};
   fil.filter(m=> m.tipo==='gasto').forEach(m => porCat[m.categoria] = (porCat[m.categoria] || 0) + m.importe);
-
-  // datos barras: ingresos vs gastos totals for month
   const totalIngresos = fil.filter(m=> m.tipo==='ingreso').reduce((s,m)=> s + m.importe, 0);
   const totalGastos = fil.filter(m=> m.tipo==='gasto').reduce((s,m)=> s + m.importe, 0);
 
@@ -491,24 +465,21 @@ function generarGraficos(){
   });
 }
 
-/* ===== Resumen (month picker) ===== */
+/* ===== Resumen ===== */
 let resDough, resBar;
 function generarResumen(){
   const month = document.getElementById('resMes').value || obtenerMesActual();
-  // filter by month (YYYY-MM)
   const movMes = movimientos.filter(m => m.fecha.startsWith(month));
   const ingresos = movMes.filter(m=> m.tipo==='ingreso').reduce((s,m)=> s + m.importe, 0);
   const gastos = movMes.filter(m=> m.tipo==='gasto').reduce((s,m)=> s + m.importe, 0);
   const balance = ingresos - gastos;
 
-  // set textual totals
   document.getElementById('res_ing').textContent = ingresos.toFixed(2) + ' €';
   document.getElementById('res_gas').textContent = gastos.toFixed(2) + ' €';
   const elResSaldo = document.getElementById('res_saldo');
   elResSaldo.textContent = balance.toFixed(2) + ' €';
   elResSaldo.style.color = balance>0 ? 'var(--verde)' : balance<0 ? 'var(--rojo)' : '#222';
 
-  // doughnut categorias (gastos)
   const porCat = {};
   movMes.filter(m => m.tipo==='gasto').forEach(m => porCat[m.categoria] = (porCat[m.categoria] || 0) + m.importe);
 
@@ -548,16 +519,13 @@ function obtenerNombreMes(idx){
 /* ===== Orden toggle ===== */
 function toggleOrden(){ ordenAsc = !ordenAsc; renderTable(); }
 
-/* ===== init ===== */
+/* ===== Init ===== */
 document.addEventListener('DOMContentLoaded', ()=>{
   abrirDB();
   toggleCategoria();
-  // set default picks
   document.getElementById('grafMes').value = obtenerMesActual();
   document.getElementById('resMes').value = obtenerMesActual();
-  // show home by default
   showTab('home');
-  // listeners: regenerate graphs on change
   document.getElementById('grafMes').addEventListener('change', generarGraficos);
   document.getElementById('grafTipo').addEventListener('change', generarGraficos);
   document.getElementById('resMes').addEventListener('change', generarResumen);
